@@ -4,99 +4,18 @@
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/InitializePasses.h"
 #include "llvm/Support/raw_ostream.h"
-#include "X86InstrInfo.h"
-#include <map>
 
 using namespace llvm;
 
 namespace {
-
-struct X86DecomposeAllFMAPass : public MachineFunctionPass {
+struct DecomposeFMAPass : public MachineFunctionPass {
   static char ID;
-  X86DecomposeAllFMAPass() : MachineFunctionPass(ID) {
-    initializeX86DecomposeAllFMAPassPass(*PassRegistry::getPassRegistry());
+  DecomposeFMAPass() : MachineFunctionPass(ID) {
+    initializeDecomposeFMAPassPass(*PassRegistry::getPassRegistry());
   }
 
   StringRef getPassName() const override {
-    return "X86 Decompose All FMA Instructions";
-  }
-
-  // Маппинг FMA opcode -> {MUL opcode, ADD opcode}
-  const std::map<unsigned, std::pair<unsigned, unsigned>> FMAMap = {
-      // Scalar Single-Precision (SS)
-      {X86::VFMADD132SSrr, {X86::VMULSSrr, X86::VADDSSrr}},
-      {X86::VFMADD213SSrr, {X86::VMULSSrr, X86::VADDSSrr}},
-      {X86::VFMADD231SSrr, {X86::VMULSSrr, X86::VADDSSrr}},
-      {X86::VFMADD132SSrm, {X86::VMULSSrm, X86::VADDSSrr}},
-      {X86::VFMADD213SSrm, {X86::VMULSSrm, X86::VADDSSrr}},
-      {X86::VFMADD231SSrm, {X86::VMULSSrm, X86::VADDSSrr}},
-
-      // Packed Single-Precision (PS)
-      {X86::VFMADD132PSrr, {X86::VMULPSrr, X86::VADDPSrr}},
-      {X86::VFMADD213PSrr, {X86::VMULPSrr, X86::VADDPSrr}},
-      {X86::VFMADD231PSrr, {X86::VMULPSrr, X86::VADDPSrr}},
-      {X86::VFMADD132PSrm, {X86::VMULPSrm, X86::VADDPSrr}},
-      {X86::VFMADD213PSrm, {X86::VMULPSrm, X86::VADDPSrr}},
-      {X86::VFMADD231PSrm, {X86::VMULPSrm, X86::VADDPSrr}},
-
-      // Scalar Double-Precision (SD)
-      {X86::VFMADD132SDr, {X86::VMULSDrr, X86::VADDSDrr}},
-      {X86::VFMADD213SDr, {X86::VMULSDrr, X86::VADDSDrr}},
-      {X86::VFMADD231SDr, {X86::VMULSDrr, X86::VADDSDrr}},
-      {X86::VFMADD132SDm, {X86::VMULSDrm, X86::VADDSDrr}},
-      {X86::VFMADD213SDm, {X86::VMULSDrm, X86::VADDSDrr}},
-      {X86::VFMADD231SDm, {X86::VMULSDrm, X86::VADDSDrr}},
-
-      // Packed Double-Precision (PD)
-      {X86::VFMADD132PDr, {X86::VMULPDrr, X86::VADDPDrr}},
-      {X86::VFMADD213PDr, {X86::VMULPDrr, X86::VADDPDrr}},
-      {X86::VFMADD231PDr, {X86::VMULPDrr, X86::VADDPDrr}},
-      {X86::VFMADD132PDm, {X86::VMULPDrm, X86::VADDPDrr}},
-      {X86::VFMADD213PDm, {X86::VMULPDrm, X86::VADDPDrr}},
-      {X86::VFMADD231PDm, {X86::VMULPDrm, X86::VADDPDrr}},
-  };
-
-  bool processFMA(MachineInstr &MI, const TargetInstrInfo *TII,
-                  MachineRegisterInfo &MRI) {
-    unsigned Opc = MI.getOpcode();
-    auto It = FMAMap.find(Opc);
-    if (It == FMAMap.end())
-      return false;
-
-    unsigned MulOpc = It->second.first;
-    unsigned AddOpc = It->second.second;
-
-    // Операнды FMA: dst, src1, src2, src3
-    Register Dest = MI.getOperand(0).getReg();
-    MachineOperand &Src1 = MI.getOperand(1);
-    MachineOperand &Src2 = MI.getOperand(2);
-    MachineOperand &Src3 = MI.getOperand(3);
-
-    // Создаём виртуальный регистр для результата умножения
-    Register MulRes = MRI.createVirtualRegister(MRI.getRegClass(Dest));
-
-    // Вставляем MUL инструкцию
-    MachineInstrBuilder MulMI = BuildMI(*MI.getParent(), MI, MI.getDebugLoc(),
-                                        TII->get(MulOpc), MulRes);
-
-    // Добавляем операнды MUL
-    MulMI.add(Src1).add(Src2);
-
-    // Если MUL с памятью, добавляем адресные операнды
-    if (MI.getDesc().mayLoad() && Src2.isMem())
-      for (unsigned i = 3; i < MI.getNumOperands(); ++i)
-        MulMI.add(MI.getOperand(i));
-
-    // Вставляем ADD инструкцию
-    MachineInstrBuilder AddMI =
-        BuildMI(*MI.getParent(), MI, MI.getDebugLoc(), TII->get(AddOpc), Dest);
-
-    AddMI.addReg(MulRes).add(Src3);
-
-    // Удаляем исходную FMA инструкцию
-    MI.eraseFromParent();
-
-    return true;
+    return "Decompose FMA instructions";
   }
 
   bool runOnMachineFunction(MachineFunction &MF) override {
@@ -107,28 +26,48 @@ struct X86DecomposeAllFMAPass : public MachineFunctionPass {
     for (auto &MBB : MF) {
       for (auto MI = MBB.begin(), ME = MBB.end(); MI != ME;) {
         MachineInstr &Instr = *MI++;
-        if (FMAMap.count(Instr.getOpcode())) {
-          Changed |= processFMA(Instr, TII, MRI);
+        if (Instr.getOpcode() == TargetOpcode::G_FMA) {
+          Register Dest = Instr.getOperand(0).getReg();
+          Register Src0 = Instr.getOperand(1).getReg();
+          Register Src1 = Instr.getOperand(2).getReg();
+          Register Src2 = Instr.getOperand(3).getReg();
+
+          Register MulRes = MRI.createVirtualRegister(MRI.getRegClass(Dest));
+          Register AddRes = MRI.createVirtualRegister(MRI.getRegClass(Dest));
+
+          // %mul = MUL %src0, %src1
+          BuildMI(MBB, Instr, Instr.getDebugLoc(),
+                  TII->get(TargetOpcode::G_MUL), MulRes)
+              .addReg(Src0)
+              .addReg(Src1);
+
+          // %add = ADD %src2, %mul
+          BuildMI(MBB, Instr, Instr.getDebugLoc(),
+                  TII->get(TargetOpcode::G_ADD), AddRes)
+              .addReg(Src2)
+              .addReg(MulRes);
+
+          MRI.replaceRegWith(Dest, AddRes);
+          Instr.eraseFromParent();
+          Changed = true;
         }
       }
     }
     return Changed;
   }
 };
+char DecomposeFMAPass::ID = 0;
+} // namespace
 
-char X86DecomposeAllFMAPass::ID = 0;
-
-} // end anonymous namespace
-
-INITIALIZE_PASS(X86DecomposeAllFMAPass, "x86-decompose-all-fma",
-                "X86 Decompose All FMA Instructions", false, false)
+INITIALIZE_PASS(DecomposeFMAPass, "decompose-fma", "Decompose FMA instructions",
+                false, false)
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void
-LLVMInitializeX86DecomposeAllFMAPassPass(PassRegistry &Registry) {
-  initializeX86DecomposeAllFMAPassPass(Registry);
+LLVMInitializeDecomposeFMAPassPass(PassRegistry &Registry) {
+  initializeDecomposeFMAPassPass(Registry);
 }
 
 extern "C" LLVM_EXTERNAL_VISIBILITY llvm::FunctionPass *
-createX86DecomposeAllFMAPass() {
-  return new X86DecomposeAllFMAPass();
+createDecomposeFMAPass() {
+  return new DecomposeFMAPass();
 }
