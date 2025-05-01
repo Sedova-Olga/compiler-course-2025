@@ -10,6 +10,7 @@ using namespace llvm;
 namespace {
 struct DecomposeFMAPass : public MachineFunctionPass {
   static char ID;
+  DecomposeFMAPass() : MachineFunctionPass(ID) {}
   DecomposeFMAPass() : MachineFunctionPass(ID) {
     initializeDecomposeFMAPassPass(*PassRegistry::getPassRegistry());
   }
@@ -67,7 +68,6 @@ LLVMInitializeDecomposeFMAPassPass(PassRegistry &Registry) {
   initializeDecomposeFMAPassPass(Registry);
 }
 
-extern "C" LLVM_EXTERNAL_VISIBILITY llvm::FunctionPass *
-createDecomposeFMAPass() {
+extern "C" LLVM_EXTERNAL_VISIBILITY Pass *createDecomposeFMAPass() {
   return new DecomposeFMAPass();
-}
+} 
