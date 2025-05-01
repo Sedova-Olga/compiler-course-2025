@@ -4,15 +4,18 @@
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/InitializePasses.h"
 #include "llvm/Support/raw_ostream.h"
+#include "X86.h"
+#include "X86InstrInfo.h"
+#include "X86Subtarget.h"
 
 using namespace llvm;
 
 namespace {
 
-class DecomposeFMAPass : public MachineFunctionPass {
+class DecomposeFMAPass : public llvm::MachineFunctionPass {
 public:
   static char ID;
-  DecomposeFMAPass() : MachineFunctionPass(ID) {}
+  DecomposeFMAPass() : llvm::MachineFunctionPass(ID) {}
 
   StringRef getPassName() const override {
     return "Decompose generic FMA instructions into MUL + ADD";
@@ -67,9 +70,5 @@ char DecomposeFMAPass::ID = 0;
 
 } // namespace
 
-INITIALIZE_PASS(DecomposeFMAPass, "decompose-fma", "Decompose FMA instructions",
-                false, false)
-
-extern "C" LLVM_EXTERNAL_VISIBILITY Pass *createDecomposeFMAPass() {
-  return new DecomposeFMAPass();
-}
+static llvm::RegisterPass<DecomposeFMAPass>
+    X("decompose-fma", "Decompose FMA instructions", false, false);
