@@ -8,15 +8,14 @@
 using namespace llvm;
 
 namespace {
-struct DecomposeFMAPass : public MachineFunctionPass {
+
+class DecomposeFMAPass : public MachineFunctionPass {
+public:
   static char ID;
   DecomposeFMAPass() : MachineFunctionPass(ID) {}
-  DecomposeFMAPass() : MachineFunctionPass(ID) {
-    initializeDecomposeFMAPassPass(*PassRegistry::getPassRegistry());
-  }
 
   StringRef getPassName() const override {
-    return "Decompose FMA instructions";
+    return "Decompose generic FMA instructions into MUL + ADD";
   }
 
   bool runOnMachineFunction(MachineFunction &MF) override {
@@ -27,29 +26,35 @@ struct DecomposeFMAPass : public MachineFunctionPass {
     for (auto &MBB : MF) {
       for (auto MI = MBB.begin(), ME = MBB.end(); MI != ME;) {
         MachineInstr &Instr = *MI++;
+        // Ищем generic FMA (G_FMA)
         if (Instr.getOpcode() == TargetOpcode::G_FMA) {
+          // Формат: dst = G_FMA src0, src1, src2  (dst = src2 + src0 * src1)
           Register Dest = Instr.getOperand(0).getReg();
           Register Src0 = Instr.getOperand(1).getReg();
           Register Src1 = Instr.getOperand(2).getReg();
           Register Src2 = Instr.getOperand(3).getReg();
 
+          // Создаем временный виртуальный регистр для результата MUL
           Register MulRes = MRI.createVirtualRegister(MRI.getRegClass(Dest));
-          Register AddRes = MRI.createVirtualRegister(MRI.getRegClass(Dest));
 
-          // %mul = MUL %src0, %src1
+          // Вставляем MUL: MulRes = Src0 * Src1
           BuildMI(MBB, Instr, Instr.getDebugLoc(),
                   TII->get(TargetOpcode::G_MUL), MulRes)
               .addReg(Src0)
               .addReg(Src1);
 
-          // %add = ADD %src2, %mul
+          // Вставляем ADD: Dest = Src2 + MulRes
           BuildMI(MBB, Instr, Instr.getDebugLoc(),
-                  TII->get(TargetOpcode::G_ADD), AddRes)
+                  TII->get(TargetOpcode::G_ADD), Dest)
               .addReg(Src2)
               .addReg(MulRes);
 
-          MRI.replaceRegWith(Dest, AddRes);
+          // Заменяем все использования Dest на новый результат ADD
+          MRI.replaceRegWith(Dest, Dest);
+
+          // Удаляем исходную FMA-инструкцию
           Instr.eraseFromParent();
+
           Changed = true;
         }
       }
@@ -57,17 +62,14 @@ struct DecomposeFMAPass : public MachineFunctionPass {
     return Changed;
   }
 };
+
 char DecomposeFMAPass::ID = 0;
+
 } // namespace
 
 INITIALIZE_PASS(DecomposeFMAPass, "decompose-fma", "Decompose FMA instructions",
                 false, false)
 
-extern "C" LLVM_EXTERNAL_VISIBILITY void
-LLVMInitializeDecomposeFMAPassPass(PassRegistry &Registry) {
-  initializeDecomposeFMAPassPass(Registry);
-}
-
 extern "C" LLVM_EXTERNAL_VISIBILITY Pass *createDecomposeFMAPass() {
   return new DecomposeFMAPass();
-} 
+}
