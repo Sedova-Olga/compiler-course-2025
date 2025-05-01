@@ -26,7 +26,7 @@ bb.0:
 
   G_FMA $vreg0, $vreg1, $vreg2, $vreg3
   G_ADD $vreg5, $vreg0, $vreg4
-
+   
   RET
 }
 
