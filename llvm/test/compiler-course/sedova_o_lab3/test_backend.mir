@@ -1,89 +1,39 @@
 # RUN: llc -mtriple x86_64-unknown-linux-gnu -mattr=+avx --load=%llvmshlibdir/DecomposeFMAPass_Sedova_Olga_FIIT1_BACKEND%shlibext \
 # RUN: -run-pass=decompose-fma %s -o - | FileCheck %s
 
-; ModuleID = 'test.mir'
-; Target: x86_64-unknown-linux-gnu
+--- |
+  ; ModuleID = 'test_backend.mir'
+  source_filename = "test_backend.mir"
+  target datalayout = "e-m:e-p:64:64-i64:64-f80:128-n8:16:32:64-S128"
 
-func.func @test_decompose_fma() {
-bb.0:
-  liveins: $vreg1, $vreg2, $vreg3, $vreg4
+  define void @test() {
+    ret void
+  }
 
-  ; Проверяем, что исходная G_FMA отсутствует
-  ; CHECK-NOT: G_FMA
-  ; Проверяем, что появились G_MUL и G_ADD
-  ; CHECK: G_MUL
-  ; CHECK: G_ADD
-
-  G_FMA $vreg0, $vreg1, $vreg2, $vreg3
-
-  RET
-}
-
+...
 ---
-# CHECK: test_decompose_fma
-# CHECK: name:            test_decompose_fma
-name:            test_decompose_fma
+# CHECK: name:            test
+name:            test
 alignment:       16
-exposesReturnsTwice: false
-legalized:       false
-regBankSelected: false
-selected:        false
-failedISel:      false
 tracksRegLiveness: true
-hasWinCFI:       false
-callsEHReturn:   false
-callsUnwindInit: false
-hasEHCatchret:   false
-hasEHScopes:     false
-hasEHFunclets:   false
-isOutlined:      false
-debugInstrRef:   true
-failsVerification: false
-tracksDebugUserValues: true
 registers:       []
 liveins:
   - { reg: '$vreg1', virtual-reg: '' }
   - { reg: '$vreg2', virtual-reg: '' }
   - { reg: '$vreg3', virtual-reg: '' }
-  - { reg: '$vreg4', virtual-reg: '' }
 frameInfo:
-  isFrameAddressTaken: false
-  isReturnAddressTaken: false
-  hasStackMap:     false
-  hasPatchPoint:   false
   stackSize:       0
-  offsetAdjustment: 0
-  maxAlignment:    1
   adjustsStack:    false
   hasCalls:        false
-  stackProtector:  ''
-  functionContext: ''
-  maxCallFrameSize: 0
-  cvBytesOfCalleeSavedRegisters: 0
-  hasOpaqueSPAdjustment: false
-  hasVAStart:      false
-  hasMustTailInVarArgFunc: false
-  hasTailCall:     false
-  isCalleeSavedInfoValid: true
-  localFrameSize:  0
-  savePoint:       ''
-  restorePoint:    ''
-fixedStack:      []
-stack:           []
-entry_values:    []
-callSites:       []
-debugValueSubstitutions: []
-constants:       []
-machineFunctionInfo:
-  amxProgModel:    None
 body:             |
-  bb.0 (%ir-block.1):
-    liveins: $vreg1, $vreg2, $vreg3, $vreg4
+  bb.0:
+    liveins: $vreg1, $vreg2, $vreg3
 
+    ; CHECK-NOT: G_FMA
     ; CHECK: G_MUL
-    ; CHECK-NEXT: G_ADD
+    ; CHECK: G_ADD
 
-    G_MUL $vreg5, $vreg1, $vreg2
-    G_ADD $vreg0, $vreg3, $vreg5
+    G_FMA $vreg0, $vreg1, $vreg2, $vreg3
 
     RET
+...
