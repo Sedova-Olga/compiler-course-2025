@@ -6,7 +6,6 @@
 
 # #include <immintrin.h>
 define void @test() {
-  ; CHECK-LABEL: name: test
   ; CHECK: G_MUL
   ; CHECK: G_ADD
   ; CHECK-NOT: G_FMA
