@@ -11,10 +11,10 @@ name:            test
 alignment:       16
 tracksRegLiveness: true
 registers:
-  - { id: 0, class: vr128 }
-  - { id: 1, class: vr128 }
-  - { id: 2, class: vr128 }
-  - { id: 3, class: vr128 }
+  - { id: 0, class: vr512 }
+  - { id: 1, class: vr512 }
+  - { id: 2, class: vr512 }
+  - { id: 3, class: vr512 }
 liveins:
   - { reg: '$xmm0' }
 frameInfo:
@@ -25,14 +25,14 @@ body: |
   bb.0:
     liveins: $xmm0
 
-    %1:vr128 = IMPLICIT_DEF
-    %2:vr128 = IMPLICIT_DEF
-    %3:vr128 = IMPLICIT_DEF
+    %1:vr1512 = IMPLICIT_DEF
+    %2:vr512 = IMPLICIT_DEF
+    %3:vr512 = IMPLICIT_DEF
 
     ; CHECK-NOT: G_FMA
     ; CHECK: G_MUL
     ; CHECK: G_ADD
 
-    %0:vr128 = G_FMA %1, %2, %3
+    %0:vr512 = G_FMA %1, %2, %3
     RET64 $xmm0
 ...
