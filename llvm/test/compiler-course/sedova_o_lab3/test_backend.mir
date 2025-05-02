@@ -22,14 +22,14 @@ registers:
   - { id: 2, class: gr32 }
   - { id: 3, class: gr32 }
 liveins:
-  - { reg: '$edi' }
+  - { reg: '$eax' }
 frameInfo:
   stackSize:       0
   adjustsStack:    false
   hasCalls:        false
 body:             |
   bb.0:
-    liveins: $edi
+    liveins: $eax
 
     ; CHECK-NOT: G_FMA
     ; CHECK:     G_MUL
