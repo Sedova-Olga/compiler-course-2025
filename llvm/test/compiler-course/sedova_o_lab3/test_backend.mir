@@ -1,5 +1,5 @@
 ; RUN: llc -mtriple=x86_64-unknown-linux-gnu --load=%llvmshlibdir/DecomposeFMAPass_Sedova_Olga_FIIT1_BACKEND%shlibext \
-; RUN: -run-pass=decompose-fma %s -o - | FileCheck %s
+; RUN: -run-pass=decompose-fma %s -o | FileCheck %s
 
 define void @test() {
   ; CHECK-LABEL: name: test
