@@ -35,7 +35,7 @@ body:             |
     ; CHECK:     G_MUL
     ; CHECK:     G_ADD
 
-    G_FMA %0, %1, %2, %3
+   G_FMA %0:gr32, %1:gr32, %2:gr32, %3:gr32
     RET64 $eax
 
 ...
