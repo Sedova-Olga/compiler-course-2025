@@ -16,24 +16,26 @@
 name:            test
 alignment:       16
 tracksRegLiveness: true
-registers:       []
+registers:
+  - { id: 0, class: gr32 }
+  - { id: 1, class: gr32 }
+  - { id: 2, class: gr32 }
+  - { id: 3, class: gr32 }
 liveins:
-  - { reg: '$vreg1', virtual-reg: '' }
-  - { reg: '$vreg2', virtual-reg: '' }
-  - { reg: '$vreg3', virtual-reg: '' }
+  - { reg: '$edi' }
 frameInfo:
   stackSize:       0
   adjustsStack:    false
   hasCalls:        false
 body:             |
   bb.0:
-    liveins: $vreg1, $vreg2, $vreg3
+    liveins: $edi
 
     ; CHECK-NOT: G_FMA
-    ; CHECK: G_MUL
-    ; CHECK: G_ADD
+    ; CHECK:     G_MUL
+    ; CHECK:     G_ADD
 
-    G_FMA $vreg0, $vreg1, $vreg2, $vreg3
+    G_FMA %0, %1, %2, %3
+    RET64 $eax
 
-    RET
 ...
