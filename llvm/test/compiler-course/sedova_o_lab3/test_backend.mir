@@ -10,28 +10,28 @@ name:            test
 alignment:       16
 tracksRegLiveness: true
 registers:
-  - { id: 0, class: fpr32 }
-  - { id: 1, class: fpr32 }
-  - { id: 2, class: fpr32 }
-  - { id: 3, class: fpr32 }
+  - { id: 0, class: s32 }
+  - { id: 1, class: s32 }
+  - { id: 2, class: s32 }
+  - { id: 3, class: s32 }
 liveins:
-  - { reg: '$xmm0' }
+  - { reg: '$eax' }
 frameInfo:
   stackSize:       0
   adjustsStack:    false
   hasCalls:        false
 body: |
   bb.0:
-    liveins: $xmm0
+    liveins: $eax
 
-    %1:fpr32 = IMPLICIT_DEF
-    %2:fpr32 = IMPLICIT_DEF
-    %3:fpr32 = IMPLICIT_DEF
+    %1:s32 = IMPLICIT_DEF
+    %2:s32 = IMPLICIT_DEF
+    %3:s32 = IMPLICIT_DEF
 
     ; CHECK-NOT: G_FMA
     ; CHECK: G_MUL
     ; CHECK: G_ADD
 
-    %0:fpr32 = G_FMA %1, %2, %3
-    RET64 $xmm0
+    %0:s32 = G_FMA %1, %2, %3
+    RET64 $eax
 ...
