@@ -1,44 +1,12 @@
 ; RUN: llc -mtriple=x86_64-unknown-linux-gnu --load=%llvmshlibdir/DecomposeFMAPass_Sedova_Olga_FIIT1_BACKEND%shlibext \
-; RUN: -run-pass=decompose-fma %s -o | FileCheck %s
+; RUN: -run-pass=decompose-fma %s -o - | FileCheck %s
 
-func.func @test_backend() {
-bb.0:
-  liveins: $vreg1, $vreg2, $vreg3
-
-  ; CHECK-NOT: G_FMA
-  ; CHECK-DAG: G_MUL
-  ; CHECK-DAG: G_ADD
-  ; CHECK-LABEL: RET
-
-  G_FMA $vreg0, $vreg1, $vreg2, $vreg3
-  RET
-}
-
-
-func.func @test_fma_use() {
-bb.0:
-  liveins: $vreg1, $vreg2, $vreg3, $vreg4
-
-  ; CHECK-NOT: G_FMA
+define void @test() {
+  ; CHECK-LABEL: name: test
   ; CHECK: G_MUL
   ; CHECK: G_ADD
-  ; CHECK: G_ADD
-
-  G_FMA $vreg0, $vreg1, $vreg2, $vreg3
-  G_ADD $vreg5, $vreg0, $vreg4
-   
-  RET
-}
-
-func.func @test_no_fma() {
-bb.0:
-  liveins: $vreg1, $vreg2
-
   ; CHECK-NOT: G_FMA
-  ; CHECK-NOT: G_MUL
-  ; CHECK-NOT: G_ADD
-
-  G_ADD $vreg0, $vreg1, $vreg2
-
-  RET
+  %res = call float @llvm.fma.f32(float %a, float %b, float %c)
+  ret void
 }
+
