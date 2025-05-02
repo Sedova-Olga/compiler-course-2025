@@ -2,25 +2,18 @@
 # RUN: -run-pass=decompose-fma %s -o - | FileCheck %s
 
 --- |
-  ; ModuleID = 'test_backend.mir'
-  source_filename = "test_backend.mir"
-  target datalayout = "e-m:e-p:64:64-i64:64-f80:128-n8:16:32:64-S128"
-
   define void @test() {
     ret void
   }
-
 ...
----
 name:            test
 alignment:       16
 tracksRegLiveness: true
 registers:
-  - { id: 0, class: gpr32 }
-  - { id: 1, class: gpr32 }
-  - { id: 2, class: gpr32 }
-  - { id: 3, class: gpr32 }
-  - { id: 4, class: gpr32 }
+  - { id: 0, class: gr32 }
+  - { id: 1, class: gr32 }
+  - { id: 2, class: gr32 }
+  - { id: 3, class: gr32 }
 liveins:
   - { reg: '$eax' }
 frameInfo:
@@ -30,15 +23,16 @@ frameInfo:
 body: |
   bb.0:
     liveins: $eax
-    
-    %1:gpr32 = IMPLICIT_DEF
-    %2:gpr32 = IMPLICIT_DEF
-    %3:gpr32 = IMPLICIT_DEF
-    
+
+    ; Обеспечиваем, что регистры определены
+    %1:gr32 = IMPLICIT_DEF
+    %2:gr32 = IMPLICIT_DEF
+    %3:gr32 = IMPLICIT_DEF
+
     ; CHECK-NOT: G_FMA
     ; CHECK: G_MUL
     ; CHECK: G_ADD
-    
-    %0:gpr32 = G_FMA %1, %2, %3
+
+    %0:gr32 = G_FMA %1, %2, %3
     RET64 $eax
 ...
