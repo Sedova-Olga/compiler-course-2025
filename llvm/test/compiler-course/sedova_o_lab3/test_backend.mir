@@ -24,7 +24,6 @@ body: |
   bb.0:
     liveins: $eax
 
-    ; Обеспечиваем, что регистры определены
     %1:gr32 = IMPLICIT_DEF
     %2:gr32 = IMPLICIT_DEF
     %3:gr32 = IMPLICIT_DEF
