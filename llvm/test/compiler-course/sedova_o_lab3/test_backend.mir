@@ -25,7 +25,7 @@ body: |
   bb.0:
     liveins: $xmm0
 
-    %1:vr1512 = IMPLICIT_DEF
+    %1:vr512 = IMPLICIT_DEF
     %2:vr512 = IMPLICIT_DEF
     %3:vr512 = IMPLICIT_DEF
 
