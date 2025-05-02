@@ -1,6 +1,7 @@
 # RUN: llc -mtriple x86_64-unknown-linux-gnu -mattr=+avx --load=%llvmshlibdir/DecomposeFMAPass_Sedova_Olga_FIIT1_BACKEND%shlibext \
 # RUN: -run-pass=decompose-fma %s -o - | FileCheck %s
 
+
 --- |
   define void @test() {
     ret void
@@ -10,28 +11,28 @@ name:            test
 alignment:       16
 tracksRegLiveness: true
 registers:
-  - { id: 0, class: s32 }
-  - { id: 1, class: s32 }
-  - { id: 2, class: s32 }
-  - { id: 3, class: s32 }
+  - { id: 0, class: vr128 }
+  - { id: 1, class: vr128 }
+  - { id: 2, class: vr128 }
+  - { id: 3, class: vr128 }
 liveins:
-  - { reg: '$eax' }
+  - { reg: '$xmm0' }
 frameInfo:
   stackSize:       0
   adjustsStack:    false
   hasCalls:        false
 body: |
   bb.0:
-    liveins: $eax
+    liveins: $xmm0
 
-    %1:s32 = IMPLICIT_DEF
-    %2:s32 = IMPLICIT_DEF
-    %3:s32 = IMPLICIT_DEF
+    %1:vr128 = IMPLICIT_DEF
+    %2:vr128 = IMPLICIT_DEF
+    %3:vr128 = IMPLICIT_DEF
 
     ; CHECK-NOT: G_FMA
     ; CHECK: G_MUL
     ; CHECK: G_ADD
 
-    %0:s32 = G_FMA %1, %2, %3
-    RET64 $eax
+    %0:vr128 = G_FMA %1, %2, %3
+    RET64 $xmm0
 ...
