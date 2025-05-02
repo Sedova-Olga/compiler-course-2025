@@ -1,6 +1,10 @@
-; RUN: llc -mtriple=x86_64-unknown-linux-gnu --load=%llvmshlibdir/DecomposeFMAPass_Sedova_Olga_FIIT1_BACKEND%shlibext \
-; RUN: -run-pass=decompose-fma %s -o - | FileCheck %s
+# RUN: llc -mtriple x86_64-unknown-linux-gnu -mattr=+avx --load=%llvmshlibdir/DecomposeFMAPass_Sedova_Olga_FIIT1_BACKEND%shlibext \
+# RUN: -run-pass=fma-decompose %s -o - | FileCheck %s
 
+# Source File
+# test.cpp
+
+# #include <immintrin.h>
 define void @test() {
   ; CHECK-LABEL: name: test
   ; CHECK: G_MUL
