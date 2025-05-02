@@ -12,30 +12,33 @@
 
 ...
 ---
-# CHECK: name:            test
 name:            test
 alignment:       16
 tracksRegLiveness: true
 registers:
-  - { id: 0, class: gr32 }
-  - { id: 1, class: gr32 }
-  - { id: 2, class: gr32 }
-  - { id: 3, class: gr32 }
+  - { id: 0, class: gpr32 }
+  - { id: 1, class: gpr32 }
+  - { id: 2, class: gpr32 }
+  - { id: 3, class: gpr32 }
+  - { id: 4, class: gpr32 }
 liveins:
   - { reg: '$eax' }
 frameInfo:
   stackSize:       0
   adjustsStack:    false
   hasCalls:        false
-body:             |
+body: |
   bb.0:
     liveins: $eax
-
+    
+    %1:gpr32 = IMPLICIT_DEF
+    %2:gpr32 = IMPLICIT_DEF
+    %3:gpr32 = IMPLICIT_DEF
+    
     ; CHECK-NOT: G_FMA
-    ; CHECK:     G_MUL
-    ; CHECK:     G_ADD
-
-   G_FMA %0:gr32, %1:gr32, %2:gr32, %3:gr32
+    ; CHECK: G_MUL
+    ; CHECK: G_ADD
+    
+    %0:gpr32 = G_FMA %1, %2, %3
     RET64 $eax
-
 ...
