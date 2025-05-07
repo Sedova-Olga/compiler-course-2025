@@ -1,4 +1,4 @@
-#include "clang/AST/AST.h"
+п»ї#include "clang/AST/AST.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendAction.h"
@@ -36,7 +36,6 @@ public:
       CurrentFunction = nullptr;
       CastCounts.clear();
 
-      // Не нужно дальше обходить тело, т.к. уже сделали TraverseStmt
       return false;
     }
     return true;
@@ -53,8 +52,6 @@ public:
 
     QualType srcType = ICE->getSubExpr()->getType();
     QualType dstType = ICE->getType();
-
-    // Игнорируем касты без изменения типа
     if (Context->hasSameType(srcType, dstType))
       return true;
 
@@ -72,7 +69,6 @@ private:
   FunctionDecl *CurrentFunction;
   std::map<std::string, unsigned> CastCounts;
 
-  // Преобразуем CastKind в строку, только для интересующих кастов
   std::string castKindToString(CastKind kind) {
     switch (kind) {
     case CK_IntegralToFloating:
@@ -84,7 +80,7 @@ private:
     case CK_IntegralCast:
       return "IntegralCast";
     case CK_NoOp:
-      return ""; // не считаем
+      return "";
     default:
       return "";
     }
