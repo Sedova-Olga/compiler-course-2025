@@ -7,6 +7,7 @@
 #include "clang/Tooling/Tooling.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
+#include "clang/Frontend/FrontendPluginRegistry.h"
 
 #include <map>
 #include <string>
