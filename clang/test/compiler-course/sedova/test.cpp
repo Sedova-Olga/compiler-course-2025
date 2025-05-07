@@ -1,4 +1,4 @@
-// RUN: %clang_cc1 -load %llvmshlibdir/Lab1_Sedova_Olga_FIIT1_ClangAST%pluginext -plugin example_plugin -fsyntax-only %s 2>&1 | FileCheck %s
+// RUN: %clang_cc1 -load %llvmshlibdir/Lab1_Sedova_Olga_FIIT1_ClangAST%pluginext -plugin Lab1 -fsyntax-only %s 2>&1 | FileCheck %s
 
 // Simple function
 // CHECK: FunctionDecl {{0x[0-9a-fA-F]+}} <{{.*}}> col:1 isPositive 'bool (int)'
