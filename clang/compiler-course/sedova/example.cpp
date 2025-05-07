@@ -3,129 +3,116 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendAction.h"
 #include "clang/Frontend/FrontendActions.h"
-#include "clang/Tooling/CommonOptionsParser.h"
-#include "clang/Tooling/Tooling.h"
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/raw_ostream.h"
 #include "clang/Frontend/FrontendPluginRegistry.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <map>
 #include <string>
 
 using namespace clang;
-using namespace clang::tooling;
 
 namespace {
 
-class ImplicitCastVisitor : public RecursiveASTVisitor<ImplicitCastVisitor> {
-public:
-  explicit ImplicitCastVisitor(ASTContext *Context)
-      : Context(Context), CurrentFunction(nullptr) {}
+class ExampleAction : public PluginASTAction {
+protected:
+  std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
+                                                 llvm::StringRef) override {
+    return std::make_unique<ImplicitCastConsumer>(&CI.getASTContext());
+  }
 
-  bool VisitFunctionDecl(FunctionDecl *FD) {
-    if (FD->hasBody()) {
-      CurrentFunction = FD;
-      CastCounts.clear();
-      TraverseStmt(FD->getBody());
+  bool ParseArgs(const CompilerInstance &CI,
+                 const std::vector<std::string> &args) override {
+    return true;
+  }
 
-      llvm::outs() << "Function `" << FD->getNameAsString() << "`\n";
-      for (const auto &Pair : CastCounts) {
-        llvm::outs() << Pair.first << ": " << Pair.second << "\n";
+  void PrintHelp(llvm::raw_ostream &ros) { ros << "Help for Lab1 plugin\n"; }
+
+private:
+  class ImplicitCastVisitor : public RecursiveASTVisitor<ImplicitCastVisitor> {
+  public:
+    explicit ImplicitCastVisitor(ASTContext *Context)
+        : Context(Context), CurrentFunction(nullptr) {}
+
+    bool VisitFunctionDecl(FunctionDecl *FD) {
+      if (FD->hasBody()) {
+        CurrentFunction = FD;
+        CastCounts.clear();
+        TraverseStmt(FD->getBody());
+
+        llvm::outs() << "Function `" << FD->getNameAsString() << "`\n";
+        for (const auto &Pair : CastCounts) {
+          llvm::outs() << Pair.first << ": " << Pair.second << "\n";
+        }
+        llvm::outs() << "\n";
+
+        CurrentFunction = nullptr;
+        CastCounts.clear();
+
+        return false;
       }
-      llvm::outs() << "\n";
-
-      CurrentFunction = nullptr;
-      CastCounts.clear();
-
-      return false;
+      return true;
     }
-    return true;
-  }
 
-  bool VisitImplicitCastExpr(ImplicitCastExpr *ICE) {
-    if (!CurrentFunction)
+    bool VisitImplicitCastExpr(ImplicitCastExpr *ICE) {
+      if (!CurrentFunction)
+        return true;
+
+      auto castKind = ICE->getCastKind();
+      std::string castStr = castKindToString(castKind);
+      if (castStr.empty())
+        return true;
+
+      QualType srcType = ICE->getSubExpr()->getType();
+      QualType dstType = ICE->getType();
+      if (Context->hasSameType(srcType, dstType))
+        return true;
+
+      std::string srcTypeStr = srcType.getAsString();
+      std::string dstTypeStr = dstType.getAsString();
+
+      std::string key = srcTypeStr + " -> " + dstTypeStr;
+      CastCounts[key]++;
+
       return true;
-
-    auto castKind = ICE->getCastKind();
-    std::string castStr = castKindToString(castKind);
-    if (castStr.empty())
-      return true;
-
-    QualType srcType = ICE->getSubExpr()->getType();
-    QualType dstType = ICE->getType();
-    if (Context->hasSameType(srcType, dstType))
-      return true;
-
-    std::string srcTypeStr = srcType.getAsString();
-    std::string dstTypeStr = dstType.getAsString();
-
-    std::string key = srcTypeStr + " -> " + dstTypeStr;
-    CastCounts[key]++;
-
-    return true;
-  }
-
-private:
-  ASTContext *Context;
-  FunctionDecl *CurrentFunction;
-  std::map<std::string, unsigned> CastCounts;
-
-  std::string castKindToString(CastKind kind) {
-    switch (kind) {
-    case CK_IntegralToFloating:
-      return "IntegralToFloating";
-    case CK_FloatingToIntegral:
-      return "FloatingToIntegral";
-    case CK_FloatingCast:
-      return "FloatingCast";
-    case CK_IntegralCast:
-      return "IntegralCast";
-    case CK_NoOp:
-      return "";
-    default:
-      return "";
     }
-  }
-};
 
-class ImplicitCastConsumer : public ASTConsumer {
-public:
-  explicit ImplicitCastConsumer(ASTContext *Context) : Visitor(Context) {}
+  private:
+    ASTContext *Context;
+    FunctionDecl *CurrentFunction;
+    std::map<std::string, unsigned> CastCounts;
 
-  virtual void HandleTranslationUnit(ASTContext &Context) override {
-    Visitor.TraverseDecl(Context.getTranslationUnitDecl());
-  }
+    std::string castKindToString(CastKind kind) {
+      switch (kind) {
+      case CK_IntegralToFloating:
+        return "IntegralToFloating";
+      case CK_FloatingToIntegral:
+        return "FloatingToIntegral";
+      case CK_FloatingCast:
+        return "FloatingCast";
+      case CK_IntegralCast:
+        return "IntegralCast";
+      case CK_NoOp:
+        return "";
+      default:
+        return "";
+      }
+    }
+  };
 
-private:
-  ImplicitCastVisitor Visitor;
-};
+  class ImplicitCastConsumer : public ASTConsumer {
+  public:
+    explicit ImplicitCastConsumer(ASTContext *Context) : Visitor(Context) {}
 
-class ImplicitCastAction : public ASTFrontendAction {
-public:
-  virtual std::unique_ptr<ASTConsumer>
-  CreateASTConsumer(CompilerInstance &Compiler,
-                    llvm::StringRef InFile) override {
-    return std::make_unique<ImplicitCastConsumer>(&Compiler.getASTContext());
-  }
+    virtual void HandleTranslationUnit(ASTContext &Context) override {
+      Visitor.TraverseDecl(Context.getTranslationUnitDecl());
+    }
+
+  private:
+    ImplicitCastVisitor Visitor;
+  };
 };
 
 } // namespace
 
-int main(int argc, const char **argv) {
-  llvm::cl::OptionCategory MyToolCategory("implicit-cast-counter options");
-  auto ExpectedParser = CommonOptionsParser::create(argc, argv, MyToolCategory);
-  if (!ExpectedParser) {
-    llvm::errs() << ExpectedParser.takeError();
-    return 1;
-  }
-  CommonOptionsParser &OptionsParser = ExpectedParser.get();
-
-  ClangTool Tool(OptionsParser.getCompilations(),
-                 OptionsParser.getSourcePathList());
-
-  return Tool.run(newFrontendActionFactory<ImplicitCastAction>().get());
-}
-
-
-static clang::FrontendPluginRegistry::Add<ExampleAction>
-    X("Lab1", "Description plugin");
+static FrontendPluginRegistry::Add<ExampleAction> X("Lab1",
+                                                    "Description plugin");
