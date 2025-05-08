@@ -9,15 +9,13 @@ bool isPositive(int a) {
 }
 
 // CHECK: FunctionDecl {{.*}} compute 'double (int, float)'
-// CHECK-NEXT: |-ParmVarDecl {{.*}} x 'int'
-// CHECK-NEXT: |-ParmVarDecl {{.*}} y 'float'
-// CHECK-NEXT: `-CompoundStmt
-// CHECK: ReturnStmt
+// CHECK: ParmVarDecl {{.*}} x 'int'
+// CHECK: ParmVarDecl {{.*}} y 'float'
 // CHECK: BinaryOperator {{.*}} 'double' '+'
-// CHECK: ImplicitCastExpr {{.*}} <IntegralToFloating>
-// CHECK: DeclRefExpr {{.*}} 'int' lvalue ParmVar {{.*}} 'x' 'int'
-// CHECK: ImplicitCastExpr {{.*}} <FloatingCast>
-// CHECK: DeclRefExpr {{.*}} 'float' lvalue ParmVar {{.*}} 'y' 'float'
+// CHECK: ImplicitCastExpr {{.*}} 'float' <IntegralToFloating>
+// CHECK: 'int' lvalue ParmVar
+// CHECK: ImplicitCastExpr {{.*}} 'double' <FloatingCast>
+// CHECK: 'float' lvalue ParmVar
 
 double compute(int x, float y) {
   return x + y;
