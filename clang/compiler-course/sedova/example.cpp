@@ -33,22 +33,9 @@ private:
     explicit ImplicitCastVisitor(ASTContext *Context)
         : Context(Context), CurrentFunction(nullptr) {}
 
-    bool VisitFunctionDecl(FunctionDecl *FD) {
+ bool VisitFunctionDecl(FunctionDecl *FD) {
       if (FD->hasBody()) {
-        CurrentFunction = FD;
-        CastCounts.clear();
-        TraverseStmt(FD->getBody());
-
-        llvm::outs() << "Function `" << FD->getNameAsString() << "`\n";
-        for (const auto &Pair : CastCounts) {
-          llvm::outs() << Pair.first << ": " << Pair.second << "\n";
-        }
-        llvm::outs() << "\n";
-
-        CurrentFunction = nullptr;
-        CastCounts.clear();
-
-        return false;
+        FD->dump();
       }
       return true;
     }
