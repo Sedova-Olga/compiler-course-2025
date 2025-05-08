@@ -22,3 +22,23 @@ bool isPositive(int a) {
 double compute(int x, float y) {
   return x + y;
 }
+
+// CHECK-LABEL: FunctionDecl {{.*}} multipleCasts 'double (int, int)'
+// CHECK: ParmVarDecl {{.*}} 'int'
+// CHECK: ParmVarDecl {{.*}} 'int'
+// CHECK: VarDecl {{.*}} 'float'
+// CHECK: ImplicitCastExpr {{.*}} 'float' <IntegralToFloating>
+// CHECK: BinaryOperator {{.*}} 'int' '+'
+// CHECK: 'int' lvalue ParmVar
+// CHECK: 'int' lvalue ParmVar
+// CHECK: ReturnStmt
+// CHECK: BinaryOperator {{.*}} 'double' '+'
+// CHECK: ImplicitCastExpr {{.*}} 'double' <FloatingCast>
+// CHECK: ImplicitCastExpr {{.*}} 'float' <LValueToRValue>
+// CHECK: 'float' lvalue Var
+// CHECK: FloatingLiteral {{.*}} 'double'
+
+double multipleCasts(int a, int b) {
+  float fa = a + b;
+  return fa + 1.0;
+}
