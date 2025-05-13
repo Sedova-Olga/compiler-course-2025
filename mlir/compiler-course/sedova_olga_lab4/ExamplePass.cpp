@@ -75,10 +75,11 @@ private:
 
 }
 
-namespace mlir {
-void registerTraceLoopIterPass() {
-  PassRegistration<TraceLoopIterPass>(
-      "trace-loop-iter", "Insert calls to @trace_loop_iter_begin and "
-                         "@trace_loop_iter_end on loop iterations");
+namespace {
+static mlir::PassRegistration<TraceLoopIterPass>
+    pass("trace-loop-iter", "Insert calls to @trace_loop_iter_begin and "
+                            "@trace_loop_iter_end on loop iterations");
 }
+
+void mlir::registerTraceLoopIterPass() {
 }
