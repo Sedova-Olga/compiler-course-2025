@@ -54,6 +54,12 @@ struct TraceLoopIterPass
     });
   }
 
+  StringRef getArgument() const final override { return "trace-loop-iter"; }
+  StringRef getDescription() const final override {
+    return "Insert calls to @trace_loop_iter_begin and @trace_loop_iter_end on "
+           "loop iterations";
+  }
+
 private:
   template <typename LoopOp>
   void insertTraceCalls(LoopOp loopOp, FuncOp traceBeginFunc,
@@ -92,9 +98,8 @@ namespace mlir {
 void registerTraceLoopIterPass();
 }
 
-static mlir::PassRegistration<TraceLoopIterPass>
-    pass("trace-loop-iter", "Insert calls to @trace_loop_iter_begin and "
-                            "@trace_loop_iter_end on loop iterations");
+static PassRegistration<TraceLoopIterPass> pass;
+
 
 extern "C" void mlirRegisterPasses() { mlir::registerTraceLoopIterPass(); }
 
