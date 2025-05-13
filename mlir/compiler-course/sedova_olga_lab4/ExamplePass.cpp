@@ -51,30 +51,28 @@ private:
   template <typename LoopOp>
   void insertTraceCalls(LoopOp loopOp, FuncOp traceBeginFunc,
                         FuncOp traceEndFunc) {
-    Region *bodyRegion = loopOp.getBody();
-    Block &firstBlock = bodyRegion->front();
-    OpBuilder builder(&firstBlock);
+    Block *bodyBlock = loopOp.getBody();
+    OpBuilder builder(bodyBlock);
 
-    builder.setInsertionPointToStart(&firstBlock);
+    builder.setInsertionPointToStart(bodyBlock);
     builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
                                  ArrayRef<Value>{});
 
-    builder.setInsertionPoint(bodyRegion->back().getTerminator());
+    builder.setInsertionPoint(bodyBlock->getTerminator());
     builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
                                  ArrayRef<Value>{});
   }
-
 
 void insertTraceCalls(scf::WhileOp whileOp, FuncOp traceBeginFunc,
                         FuncOp traceEndFunc) {
     Region &afterRegion = whileOp.getAfter();
     Block &afterBlock = afterRegion.front();
+
     OpBuilder builder(&afterBlock);
 
     builder.setInsertionPointToStart(&afterBlock);
     builder.create<func::CallOp>(whileOp.getLoc(), traceBeginFunc,
                                  ArrayRef<Value>{});
-
     builder.setInsertionPoint(afterBlock.getTerminator());
     builder.create<func::CallOp>(whileOp.getLoc(), traceEndFunc,
                                  ArrayRef<Value>{});
