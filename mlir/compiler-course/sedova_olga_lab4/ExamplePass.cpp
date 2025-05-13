@@ -88,17 +88,19 @@ private:
 
 } // namespace
 
-
-
 MLIR_DECLARE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
 MLIR_DEFINE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
 
-mlir::PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
-  return {MLIR_PLUGIN_API_VERSION, "Lab4", "1.0",
-          []() { mlir::PassRegistration<TraceLoopIterPass>(); }};
+mlir::PassPluginLibraryInfo getTraceLoopIterPassPluginInfo() {
+  return {MLIR_PLUGIN_API_VERSION, "Lab4", "1.0", []() {
+            // Создаем статический объект для регистрации пасса
+            static PassRegistration<TraceLoopIterPass> pass(
+                "trace-loop-iter", "Insert calls to @trace_loop_iter_begin and "
+                                   "@trace_loop_iter_end on loop iterations");
+          }};
 }
 
 extern "C" LLVM_ATTRIBUTE_WEAK mlir::PassPluginLibraryInfo
 mlirGetPassPluginInfo() {
-  return getFunctionCallCounterPassPluginInfo();
+  return getTraceLoopIterPassPluginInfo();
 }
