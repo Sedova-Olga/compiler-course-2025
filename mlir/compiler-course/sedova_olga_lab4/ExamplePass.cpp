@@ -3,7 +3,6 @@
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
 
 using namespace mlir;
@@ -13,6 +12,14 @@ namespace {
 
 struct TraceLoopIterPass
     : public PassWrapper<TraceLoopIterPass, OperationPass<ModuleOp>> {
+  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(TraceLoopIterPass)
+
+  StringRef getArgument() const final { return "trace-loop-iter"; }
+  StringRef getDescription() const final {
+    return "Insert calls to @trace_loop_iter_begin and @trace_loop_iter_end on "
+           "loop iterations";
+  }
+
   void runOnOperation() override {
     ModuleOp module = getOperation();
     OpBuilder builder(module.getContext());
@@ -53,12 +60,12 @@ private:
                         FuncOp traceEndFunc) {
     Block *bodyBlock = loopOp.getBody();
     OpBuilder builder(loopOp.getContext());
+
     builder.setInsertionPointToStart(bodyBlock);
     builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
                                  ArrayRef<Value>{});
 
-    builder.setInsertionPoint(
-        bodyBlock->getTerminator());
+    builder.setInsertionPoint(bodyBlock->getTerminator());
     builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
                                  ArrayRef<Value>{});
   }
@@ -73,8 +80,7 @@ private:
     builder.create<func::CallOp>(whileOp.getLoc(), traceBeginFunc,
                                  ArrayRef<Value>{});
 
-    builder.setInsertionPoint(
-        afterBlock.getTerminator());
+    builder.setInsertionPoint(afterBlock.getTerminator());
     builder.create<func::CallOp>(whileOp.getLoc(), traceEndFunc,
                                  ArrayRef<Value>{});
   }
@@ -82,11 +88,9 @@ private:
 
 }
 
-namespace {
-static mlir::PassRegistration<TraceLoopIterPass>
-    pass("trace-loop-iter", "Insert calls to @trace_loop_iter_begin and "
-                            "@trace_loop_iter_end on loop iterations");
+namespace mlir {
+void registerTraceLoopIterPass() {
+}
 }
 
-void mlir::registerTraceLoopIterPass() {
-}
+static mlir::PassRegistration<TraceLoopIterPass> pass;
