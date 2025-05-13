@@ -89,16 +89,16 @@ private:
 } // namespace
 
 
-namespace mlir {
-void registerTraceLoopIterPass();
+
+MLIR_DECLARE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
+MLIR_DEFINE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
+
+mlir::PassPluginLibraryInfo getFunctionCallCounterPassPluginInfo() {
+  return {MLIR_PLUGIN_API_VERSION, "Lab4", "1.0",
+          []() { mlir::PassRegistration<TraceLoopIterPass>(); }};
 }
 
-static PassRegistration<TraceLoopIterPass> pass;
-
-extern "C" void mlirRegisterPasses() { mlir::registerTraceLoopIterPass(); }
-
-namespace mlir {
-void registerTraceLoopIterPass() {
-  // –егистраци€ пасса уже выполнена статически
+extern "C" LLVM_ATTRIBUTE_WEAK mlir::PassPluginLibraryInfo
+mlirGetPassPluginInfo() {
+  return getFunctionCallCounterPassPluginInfo();
 }
-} // namespace mlir
