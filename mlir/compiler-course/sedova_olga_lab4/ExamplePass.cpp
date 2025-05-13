@@ -95,4 +95,7 @@ void registerTraceLoopIterPass() {
 
 static PassRegistration<TraceLoopIterPass> pass;
 
-extern "C" void mlirRegisterPasses() { mlir::registerTraceLoopIterPass(); }
+extern "C" void mlirRegisterPasses() {
+  mlir::registerTraceLoopIterPass();
+}
+
