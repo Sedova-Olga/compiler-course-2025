@@ -25,7 +25,15 @@ protected:
     return true;
   }
 
-  void PrintHelp(llvm::raw_ostream &ros) { ros << "Help for Lab1 plugin\n"; }
+void PrintHelp(llvm::raw_ostream &ros) {
+    ros << "Lab1 plugin: This pass analyzes the source code to identify and "
+           "count implicit type casts "
+           "within functions. It helps developers understand where and how "
+           "often implicit conversions "
+           "occur, which can be useful for debugging, optimization, and code "
+           "quality improvements.\n";
+  }
+
 
 private:
   class ImplicitCastVisitor : public RecursiveASTVisitor<ImplicitCastVisitor> {
@@ -35,10 +43,15 @@ private:
 
  bool VisitFunctionDecl(FunctionDecl *FD) {
       if (FD->hasBody()) {
-        FD->dump();
+        ImplicitCastCount = 0;
+        TraverseStmt(FD->getBody());
+        llvm::outs() << "Function '"
+                     << FD->getNameInfo().getName().getAsString()
+                     << "' contains " << ImplicitCastCount
+                     << " implicit casts.\n";
       }
       return true;
-    }
+ }
 
     bool VisitImplicitCastExpr(ImplicitCastExpr *ICE) {
       if (!CurrentFunction)
@@ -61,6 +74,11 @@ private:
       CastCounts[key]++;
 
       return true;
+    }
+
+     void PrintTotalStatistics() const {
+      llvm::outs() << "Total implicit casts in translation unit: "
+                   << TotalImplicitCastCount << "\n";
     }
 
   private:
@@ -90,8 +108,9 @@ private:
   public:
     explicit ImplicitCastConsumer(ASTContext *Context) : Visitor(Context) {}
 
-    virtual void HandleTranslationUnit(ASTContext &Context) override {
+    void HandleTranslationUnit(ASTContext &Context) override {
       Visitor.TraverseDecl(Context.getTranslationUnitDecl());
+      Visitor.PrintTotalStatistics();
     }
 
   private:
