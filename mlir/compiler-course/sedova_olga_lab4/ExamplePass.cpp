@@ -86,11 +86,20 @@ private:
   }
 };
 
-}
+} // namespace
 
 namespace mlir {
-void registerTraceLoopIterPass() {
-}
+void registerTraceLoopIterPass();
 }
 
-static mlir::PassRegistration<TraceLoopIterPass> pass;
+static mlir::PassRegistration<TraceLoopIterPass>
+    pass("trace-loop-iter", "Insert calls to @trace_loop_iter_begin and "
+                            "@trace_loop_iter_end on loop iterations");
+
+extern "C" void mlirRegisterPasses() { mlir::registerTraceLoopIterPass(); }
+
+namespace mlir {
+  void registerTraceLoopIterPass() {
+  }
+}
+
