@@ -52,9 +52,9 @@ private:
   void insertTraceCalls(LoopOp loopOp, FuncOp traceBeginFunc,
                         FuncOp traceEndFunc) {
     Block *bodyBlock = loopOp.getBody();
-    OpBuilder builder(bodyBlock);
-
+    OpBuilder builder(loopOp.getContext());
     builder.setInsertionPointToStart(bodyBlock);
+
     builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
                                  ArrayRef<Value>{});
 
