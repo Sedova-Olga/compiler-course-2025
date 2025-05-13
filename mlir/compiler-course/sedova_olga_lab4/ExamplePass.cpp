@@ -88,14 +88,17 @@ private:
 
 } // namespace
 
+
 namespace mlir {
-void registerTraceLoopIterPass() {
+void registerTraceLoopIterPass();
 }
-} // namespace mlir
 
 static PassRegistration<TraceLoopIterPass> pass;
 
-extern "C" void mlirRegisterPasses() {
-  mlir::registerTraceLoopIterPass();
-}
+extern "C" void mlirRegisterPasses() { mlir::registerTraceLoopIterPass(); }
 
+namespace mlir {
+void registerTraceLoopIterPass() {
+  // –егистраци€ пасса уже выполнена статически
+}
+} // namespace mlir
