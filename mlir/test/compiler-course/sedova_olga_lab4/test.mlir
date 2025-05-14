@@ -118,4 +118,3 @@ func.func @test_scf_while(%arg0: memref<10xf32>) {
     }
     return
   }
-}
