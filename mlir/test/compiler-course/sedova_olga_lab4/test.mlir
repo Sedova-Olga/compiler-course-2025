@@ -34,7 +34,7 @@ func.func @test_affine(%arg0: memref<10xf32>) {
 }
 
 func.func @test_scf_for(%arg0: memref<10xf32>) {
- %c0 = arith.constant 0 : index
+%c0 = arith.constant 0 : index
 %c10 = arith.constant 10 : index
 %c1 = arith.constant 1 : index
   scf.for %i = %c0 to %c10 step %c1  {
@@ -48,8 +48,9 @@ func.func @test_scf_for(%arg0: memref<10xf32>) {
 func.func @test_scf_while(%arg0: memref<10xf32>) {
   %c0 = arith.constant 0 : index
   %c10 = arith.constant 10 : index
+  %c1 = arith.constant 1 : index
   scf.while (%iv = %c0) : (index) -> () {
-    scf.condition {
+    scf.condition(%iv) -> (i1) {
       %cond = arith.cmpi slt, %iv, %c10 : index
       scf.yield %cond : i1
     } do {
@@ -57,7 +58,7 @@ func.func @test_scf_while(%arg0: memref<10xf32>) {
       %val = memref.load %arg0[%iv] : memref<10xf32>
       // trace_loop_iter_end should be inserted here by the pass
       %iv_next = arith.addi %iv, %c1 : index
-      scf.yield
+      scf.yield %iv_next : index
     }
   }
   return
