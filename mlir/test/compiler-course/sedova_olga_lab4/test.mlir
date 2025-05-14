@@ -50,7 +50,7 @@ func.func @test_scf_while(%arg0: memref<10xf32>) {
   %c10 = arith.constant 10 : index
   %c1 = arith.constant 1 : index
   scf.while (%iv = %c0) : (index) -> () {
-    scf.condition(%cond, %iv) : (i1, index) {
+    scf.condition(%cond) %iv : i1, index {
       %cond = arith.cmpi slt, %iv, %c10 : index
       scf.yield %cond : i1
     } do {
