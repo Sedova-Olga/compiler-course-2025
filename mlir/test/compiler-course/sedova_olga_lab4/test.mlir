@@ -44,7 +44,7 @@ func.func @test_scf_for(%arg0: memref<10xf32>) {
   }
   return
 }
-func @test_scf_while(%arg0: memref<10xf32>) {
+func.func @test_scf_while(%arg0: memref<10xf32>) {
   %c0 = arith.constant 0 : index
   %c10 = arith.constant 10 : index
   %c1 = arith.constant 1 : index
