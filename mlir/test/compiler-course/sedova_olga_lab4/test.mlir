@@ -1,5 +1,6 @@
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/Lab4_Sedova_Olga_FIIT1_MLIR%shlibext \
-// RUN: --pass-pipeline="builtin.module(Lab4_Sedova_Olga_FIIT1_MLIR)" %s | FileCheck %s
+// RUN: --pass-pipeline="builtin.module(ExamplePass_Sedova_Olga_FIIT1_MLIR)" %s | FileCheck %s
+
 
 // CHECK-LABEL: func @test_affine
 // CHECK: func.call @trace_loop_iter_begin()
