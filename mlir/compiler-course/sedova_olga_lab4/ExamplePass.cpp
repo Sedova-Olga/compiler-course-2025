@@ -73,21 +73,6 @@ private:
     builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
                                  ArrayRef<Value>{});
   }
-
-  void insertTraceCalls(scf::WhileOp whileOp, FuncOp traceBeginFunc,
-                        FuncOp traceEndFunc) {
-    Region &afterRegion = whileOp.getAfter();
-    Block &afterBlock = afterRegion.front();
-
-    OpBuilder builder(whileOp.getContext());
-    builder.setInsertionPointToStart(&afterBlock);
-    builder.create<func::CallOp>(whileOp.getLoc(), traceBeginFunc,
-                                 ArrayRef<Value>{});
-
-    builder.setInsertionPoint(afterBlock.getTerminator());
-    builder.create<func::CallOp>(whileOp.getLoc(), traceEndFunc,
-                                 ArrayRef<Value>{});
-  }
 };
 
 } // namespace
