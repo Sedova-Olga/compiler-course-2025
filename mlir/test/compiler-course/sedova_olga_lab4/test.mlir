@@ -34,9 +34,9 @@ func.func @test_affine(%arg0: memref<10xf32>) {
 }
 
 func.func @test_scf_for(%arg0: memref<10xf32>) {
-  %c0 = constant 0 : index
-  %c10 = constant 10 : index
-  %c1 = constant 1 : index
+ %c0 = arith.constant 0 : index
+%c10 = arith.constant 10 : index
+%c1 = arith.constant 1 : index
   scf.for %i = %c0 to %c10 step %c1  {
     // trace_loop_iter_begin should be inserted here by the pass
     %val = memref.load %arg0[%i] : memref<10xf32>
