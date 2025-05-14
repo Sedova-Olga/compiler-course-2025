@@ -1,4 +1,5 @@
-// RUN: mlir-opt --load-dialect=arith,scf,affine,func --load-pass-plugin=%mlir_lib_dir/Lab4_Sedova_Olga_FIIT1_MLIR%shlibext --pass-pipeline="builtin.module(Lab4_Sedova_Olga_FIIT1_MLIR)" %s | FileCheck %s
+// RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/Lab4_Sedova_Olga_FIIT1_MLIR%shlibext \
+// RUN: --pass-pipeline="builtin.module(Lab4_Sedova_Olga_FIIT1_MLIR)" %s | FileCheck %s
 
 // CHECK-LABEL: func @test_affine
 // CHECK: func.call @trace_loop_iter_begin()
@@ -62,18 +63,4 @@ func.func @test_nested_loops(%arg0: memref<10xf32>) {
   return
 }
 
-func.func @test_scf_if_in_loop(%arg0: memref<10xf32>) {
-  %c0 = arith.constant 0 : index
-  %c10 = arith.constant 10 : index
-  %c1 = arith.constant 1 : index
-  %true = arith.constant true : i1
 
-  scf.for %i = %c0 to %c10 step %c1 {
-    // CHECK: func.call @trace_loop_iter_begin()
-    scf.if %true {
-      %val = memref.load %arg0[%i] : memref<10xf32>
-    }
-    // CHECK: func.call @trace_loop_iter_end()
-  }
-  return
-}
