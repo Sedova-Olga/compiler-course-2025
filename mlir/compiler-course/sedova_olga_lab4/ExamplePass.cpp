@@ -76,8 +76,8 @@ private:
 
 } // namespace
 
-MLIR_DECLARE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
-MLIR_DEFINE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
+MLIR_DECLARE_EXPLICIT_TYPE_ID(ExamplePass)
+MLIR_DEFINE_EXPLICIT_TYPE_ID(ExamplePass)
 
 mlir::PassPluginLibraryInfo getTraceLoopIterPassPluginInfo() {
   return {MLIR_PLUGIN_API_VERSION, "Lab4_Sedova_Olga_FIIT1_MLIR", "1.0",
