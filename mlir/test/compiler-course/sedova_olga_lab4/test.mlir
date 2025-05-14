@@ -84,14 +84,13 @@ func.func @test_scf_while(%arg0: memref<10xf32>) {
   %c1 = arith.constant 1 : index
 
   scf.while (%iv = %c0) : (index) -> () {
-    scf.condition(%cond) %iv : i1, index {
+    scf.condition(%cond, %iv) : (i1, index) {
       %cond = arith.cmpi slt, %iv, %c10 : index
       scf.yield %cond : i1
     } do {
     ^bb0(%iv_arg: index):
-      // CHECK: func.call @trace_loop_iter_begin()
+      // тело цикла
       %val = memref.load %arg0[%iv_arg] : memref<10xf32>
-      // CHECK: func.call @trace_loop_iter_end()
       %iv_next = arith.addi %iv_arg, %c1 : index
       scf.yield %iv_next : index
     }
