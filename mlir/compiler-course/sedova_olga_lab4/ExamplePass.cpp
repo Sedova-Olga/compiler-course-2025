@@ -14,9 +14,8 @@ using namespace mlir::func;
 
 namespace {
 
-struct TraceLoopIterPass
-    : public PassWrapper<TraceLoopIterPass, OperationPass<ModuleOp>> {
-  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(TraceLoopIterPass)
+struct ExamplePass : public PassWrapper<ExamplePass, OperationPass<ModuleOp>> {
+  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(ExamplePass)
 
   StringRef getArgument() const final { return "trace-loop-iter"; }
   StringRef getDescription() const final {
@@ -81,8 +80,8 @@ MLIR_DECLARE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
 MLIR_DEFINE_EXPLICIT_TYPE_ID(TraceLoopIterPass)
 
 mlir::PassPluginLibraryInfo getTraceLoopIterPassPluginInfo() {
-  return {MLIR_PLUGIN_API_VERSION, "Lab4", "1.0",
-          []() { mlir::PassRegistration<TraceLoopIterPass>(); }};
+  return {MLIR_PLUGIN_API_VERSION, "Lab4_Sedova_Olga_FIIT1_MLIR", "1.0",
+          []() { mlir::PassRegistration<ExamplePass>(); }};
 }
 
 extern "C" LLVM_ATTRIBUTE_WEAK mlir::PassPluginLibraryInfo
