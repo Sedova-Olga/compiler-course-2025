@@ -1,4 +1,4 @@
-set(Title "Lab4")
+set(Title "ExamplePass")
 set(Student "Sedova_Olga")
 set(Group "FIIT1")
 set(TARGET_NAME "${Title}_${Student}_${Group}_MLIR")
