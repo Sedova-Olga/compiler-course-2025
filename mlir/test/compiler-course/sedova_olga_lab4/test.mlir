@@ -1,6 +1,7 @@
 // RUN: mlir-opt -load-pass-plugin=%mlir_lib_dir/ExamplePass_Sedova_Olga_FIIT1_MLIR%shlibext \
 // RUN: --pass-pipeline="builtin.module(ExamplePass_Sedova_Olga_FIIT1_MLIR)" %s | FileCheck %s
 
+
 func.func @trace_loop_iter_begin() {
   return
 }
@@ -14,7 +15,8 @@ func.func @test_affine(%arg0: memref<10xf32>) {
   // CHECK-NEXT: func.call @trace_loop_iter_begin()
   affine.for %arg1 = 0 to 10 {
     %0 = affine.load %arg0[%arg1] : memref<10xf32>
-    // CHECK-NEXT: func.call @trace_loop_iter_end()
+    // CHECK: func.call @trace_loop_iter_end()
+    // CHECK-NEXT: }
   }
   return
 }
@@ -27,7 +29,8 @@ func.func @test_scf_for(%arg0: memref<10xf32>) {
   // CHECK-NEXT: func.call @trace_loop_iter_begin()
   scf.for %i = %c0 to %c10 step %c1  {
     %0 = memref.load %arg0[%i] : memref<10xf32>
-    // CHECK-NEXT: func.call @trace_loop_iter_end()
+    // CHECK: func.call @trace_loop_iter_end()
+    // CHECK-NEXT: }
   }
   return
 }
@@ -45,9 +48,11 @@ func.func @test_nested_loops(%arg0: memref<10xf32>) {
     // CHECK-NEXT: func.call @trace_loop_iter_begin()
     affine.for %j = 0 to 10 {
       %0 = memref.load %arg0[%j] : memref<10xf32>
-      // CHECK-NEXT: func.call @trace_loop_iter_end()
+      // CHECK: func.call @trace_loop_iter_end()
+      // CHECK-NEXT: }
     }
-    // CHECK-NEXT: func.call @trace_loop_iter_end()
+    // CHECK: func.call @trace_loop_iter_end()
+    // CHECK-NEXT: }
   }
   return
 }
