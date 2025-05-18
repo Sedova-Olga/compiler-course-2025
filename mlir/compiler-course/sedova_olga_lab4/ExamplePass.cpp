@@ -73,11 +73,12 @@ private:
     builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
                                  ArrayRef<Value>{});
   }
-  template <>
+
+  template <typename WhileOP>
   void ExamplePass::insertTraceCalls<scf::WhileOp>(scf::WhileOp whileOp,
                                                    FuncOp traceBeginFunc,
                                                    FuncOp traceEndFunc) {
-    Block *bodyBlock = whileOp.getAfterBody()->getBlocks().begin();
+    Block *bodyBlock = whileOp.getBody();
     OpBuilder builder(whileOp.getContext());
 
     builder.setInsertionPointToStart(bodyBlock);
