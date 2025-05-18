@@ -80,11 +80,17 @@ private:
                                    ArrayRef<Value>{});
 
     } else if constexpr (std::is_same_v<LoopOp, scf::WhileOp>) {
-      Region *afterBodyRegion = loopOp.getAfterBody();
-      assert(!afterBodyRegion->empty() &&
-             "AfterBody region should not be empty");
-      Block &bodyBlockRef = afterBodyRegion->front();
+      // Получаем регион тела цикла (after-region)
+      Region &afterRegion = loopOp.getAfter();
+
+      // Проверяем, что регион не пустой
+      assert(!afterRegion.empty() && "After region should not be empty");
+
+      // Получаем первый блок региона
+      Block &bodyBlockRef = afterRegion.front();
       Block *bodyBlock = &bodyBlockRef;
+
+      OpBuilder builder(loopOp.getContext());
 
       builder.setInsertionPointToStart(bodyBlock);
       builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
@@ -94,6 +100,7 @@ private:
       builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
                                    ArrayRef<Value>{});
     }
+
   }
 };
 
