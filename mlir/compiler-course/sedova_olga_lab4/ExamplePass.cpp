@@ -80,8 +80,11 @@ private:
                                    ArrayRef<Value>{});
 
     } else if constexpr (std::is_same_v<LoopOp, scf::WhileOp>) {
-      // Для scf.while тело находится в afterBody регионе
-      Block *bodyBlock = &loopOp.getAfterBody()->front();
+      Region *afterBodyRegion = loopOp.getAfterBody();
+      assert(!afterBodyRegion->empty() &&
+             "AfterBody region should not be empty");
+      Block &bodyBlockRef = afterBodyRegion->front();
+      Block *bodyBlock = &bodyBlockRef;
 
       builder.setInsertionPointToStart(bodyBlock);
       builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
@@ -93,6 +96,7 @@ private:
     }
   }
 };
+
 
 } // namespace
 
