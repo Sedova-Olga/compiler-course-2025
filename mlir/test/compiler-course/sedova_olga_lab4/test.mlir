@@ -62,13 +62,15 @@ func.func @test_while_loop(%arg0: memref<10xf32>) {
   %c00 = arith.constant 0 : index
   %c10 = arith.constant 10 : index
   
-  // Цикл while
+  // CHECK: scf.while {{%\w+}} = %c0, %c00 : \(index, index\) -> \(index, index\)
+  // CHECK-NEXT: func.call @trace_loop_iter_begin()
   scf.while (%iter1 = %c0, %iter2 = %c00 ) : (index, index) -> (index, index) {
     %cond = arith.cmpi slt, %iter2, %c10 : index
     scf.condition(%cond) %iter1, %iter2 : index, index
   } do {
   ^bb0(%arg1: index, %arg2 : index):
-      %arg = arith.addi, %arg1, %arg2 : index
+      // CHECK-NEXT: func.call @trace_loop_iter_end()
+      %arg = arith.addi %arg1, %arg2 : index
       %c1 = arith.constant 1 : index
       %new_val = arith.addi %arg2, %c1 : index
     scf.yield %arg, %new_val : index, index
