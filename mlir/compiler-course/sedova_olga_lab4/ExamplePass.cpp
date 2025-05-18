@@ -75,9 +75,8 @@ private:
   }
 
   template <typename WhileOP>
-  void ExamplePass::insertTraceCalls<scf::WhileOp>(scf::WhileOp whileOp,
-                                                   FuncOp traceBeginFunc,
-                                                   FuncOp traceEndFunc) {
+  void insertTraceCalls(WhileOp whileOp,FuncOp traceBeginFunc,
+                        FuncOp traceEndFunc) {
     Block *bodyBlock = whileOp.getBody();
     OpBuilder builder(whileOp.getContext());
 
