@@ -63,6 +63,10 @@ func.func @test_while_loop(%arg0: memref<10xf32>) {
   %c10 = arith.constant 10 : index
 
   // CHECK: %{{.*}} = scf.while {{.*}} : (index, index) -> (index, index) {
+  // CHECK-NEXT: %{{.*}} = arith.cmpi slt, %{{.*}}, %{{.*}} : index
+  // CHECK-NEXT: scf.condition(%{{.*}}) %{{.*}}, %{{.*}} : index, index
+  // CHECK-NEXT: } do {
+  // CHECK-NEXT: ^bb0(%{{.*}}: index, %{{.*}}: index):
   // CHECK-NEXT: func.call @trace_loop_iter_begin()
   scf.while (%iter1 = %c0, %iter2 = %c0_0) : (index, index) -> (index, index) {
     %cond = arith.cmpi slt, %iter2, %c10 : index
@@ -77,4 +81,5 @@ func.func @test_while_loop(%arg0: memref<10xf32>) {
   }
   return
 }
+
 
