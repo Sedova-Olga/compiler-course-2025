@@ -1,12 +1,12 @@
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
-#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
-#include "mlir/IR/PatternMatch.h"
 #include "mlir/Tools/Plugins/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -28,9 +28,11 @@ struct ExamplePass : public PassWrapper<ExamplePass, OperationPass<ModuleOp>> {
     ModuleOp module = getOperation();
     OpBuilder builder(module.getContext());
 
+    // Попытка найти функции трассировки в модуле
     auto traceBeginFunc = module.lookupSymbol<FuncOp>("trace_loop_iter_begin");
     auto traceEndFunc = module.lookupSymbol<FuncOp>("trace_loop_iter_end");
 
+    // Если функций нет - создаём их и добавляем в модуль
     if (!traceBeginFunc) {
       auto loc = builder.getUnknownLoc();
       auto funcType = builder.getFunctionType({}, {});
@@ -47,6 +49,7 @@ struct ExamplePass : public PassWrapper<ExamplePass, OperationPass<ModuleOp>> {
       traceEndFunc.setPrivate();
     }
 
+    // Обход всех операций в модуле
     module.walk([&](Operation *op) {
       if (auto affineFor = dyn_cast<affine::AffineForOp>(op)) {
         insertTraceCalls(affineFor, traceBeginFunc, traceEndFunc);
@@ -77,7 +80,8 @@ private:
                                    ArrayRef<Value>{});
 
     } else if constexpr (std::is_same_v<LoopOp, scf::WhileOp>) {
-      Block *bodyBlock = loopOp.getAfterBody()->getBlocks().begin();
+      // Для scf.while тело находится в afterBody регионе
+      Block *bodyBlock = &loopOp.getAfterBody()->front();
 
       builder.setInsertionPointToStart(bodyBlock);
       builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
@@ -87,19 +91,23 @@ private:
       builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
                                    ArrayRef<Value>{});
     }
-  };
+  }
+};
 
 } // namespace
 
+// Объявление и определение типа для пасса
 MLIR_DECLARE_EXPLICIT_TYPE_ID(ExamplePass)
 MLIR_DEFINE_EXPLICIT_TYPE_ID(ExamplePass)
 
+// Регистрация пасса в pipeline
 static mlir::PassPipelineRegistration<>
     pipeline("ExamplePass_Sedova_Olga_FIIT1_MLIR",
              "Pipeline that runs ExamplePass", [](mlir::OpPassManager &pm) {
                pm.addPass(std::make_unique<ExamplePass>());
              });
 
+// Функции для регистрации плагина
 mlir::PassPluginLibraryInfo getTraceLoopIterPassPluginInfo() {
   return {MLIR_PLUGIN_API_VERSION, "ExamplePass_Sedova_Olga_FIIT1_MLIR", "1.0",
           []() { mlir::PassRegistration<ExamplePass>(); }};
