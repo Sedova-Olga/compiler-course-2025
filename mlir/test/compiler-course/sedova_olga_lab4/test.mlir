@@ -57,20 +57,21 @@ func.func @test_nested_loops(%arg0: memref<10xf32>) {
   return
 }
 
-func.func @test_while_loop() {
-  %c0 = arith.constant 0 : i32
-  %c10 = arith.constant 10 : i32
+func.func @test_while_loop(%arg0: memref<10xf32>) {
+  %c0 = arith.constant 0 : index
+  %c00 = arith.constant 0 : index
+  %c10 = arith.constant 10 : index
   
   // Цикл while
-  scf.while (%iter = %c0) : i32 -> i32 {
-    %cond = arith.cmpi slt, %iter, %c10 : i32
-    scf.condition(%cond) %iter : i32
+  scf.while (%iter1 = %c0, %iter2 = %c00 ) : (index, index) -> (index, index) {
+    %cond = arith.cmpi slt, %iter2, %c10 : index
+    scf.condition(%cond) %iter1, %iter2 : index, index
   } do {
-  ^bb0(%arg: i32):
-    // Здесь должны появиться вызовы трассировки
-    %new_val = arith.addi %arg, %c10 : i32
-    scf.yield %new_val : i32
+  ^bb0(%arg1: index, %arg2 : index):
+      %arg = arith.addi, %arg1, %arg2 : index
+      %c1 = arith.constant 1 : index
+      %new_val = arith.addi %arg2, %c1 : index
+    scf.yield %arg, %new_val : index, index
   }
-  
   return
 }
