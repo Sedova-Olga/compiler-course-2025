@@ -62,33 +62,32 @@ private:
   template <typename LoopOp>
   void insertTraceCalls(LoopOp loopOp, FuncOp traceBeginFunc,
                         FuncOp traceEndFunc) {
-    Block *bodyBlock = loopOp.getBody();
     OpBuilder builder(loopOp.getContext());
 
-    builder.setInsertionPointToStart(bodyBlock);
-    builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
-                                 ArrayRef<Value>{});
+    if constexpr (std::is_same_v<LoopOp, affine::AffineForOp> ||
+                  std::is_same_v<LoopOp, scf::ForOp>) {
+      Block *bodyBlock = loopOp.getBody();
 
-    builder.setInsertionPoint(bodyBlock->getTerminator());
-    builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
-                                 ArrayRef<Value>{});
-  }
+      builder.setInsertionPointToStart(bodyBlock);
+      builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
+                                   ArrayRef<Value>{});
 
-  template <typename WhileOP>
-  void insertTraceCalls(WhileOp whileOp,FuncOp traceBeginFunc,
-                        FuncOp traceEndFunc) {
-    Block *bodyBlock = whileOp.getBody();
-    OpBuilder builder(whileOp.getContext());
+      builder.setInsertionPoint(bodyBlock->getTerminator());
+      builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
+                                   ArrayRef<Value>{});
 
-    builder.setInsertionPointToStart(bodyBlock);
-    builder.create<func::CallOp>(whileOp.getLoc(), traceBeginFunc,
-                                 ArrayRef<Value>{});
+    } else if constexpr (std::is_same_v<LoopOp, scf::WhileOp>) {
+      Block *bodyBlock = loopOp.getAfterBody()->getBlocks().begin();
 
-    builder.setInsertionPoint(bodyBlock->getTerminator());
-    builder.create<func::CallOp>(whileOp.getLoc(), traceEndFunc,
-                                 ArrayRef<Value>{});
-  }
-};
+      builder.setInsertionPointToStart(bodyBlock);
+      builder.create<func::CallOp>(loopOp.getLoc(), traceBeginFunc,
+                                   ArrayRef<Value>{});
+
+      builder.setInsertionPoint(bodyBlock->getTerminator());
+      builder.create<func::CallOp>(loopOp.getLoc(), traceEndFunc,
+                                   ArrayRef<Value>{});
+    }
+  };
 
 } // namespace
 
