@@ -1,16 +1,16 @@
 ; RUN: opt -load-pass-plugin %llvmshlibdir/ReplaceAddWithCall_Sedova_Olga_FIIT1_LLVM_IR%pluginext\
 ; RUN: -passes=replace-add -S %s | FileCheck %s
 
-; CHECK: %sum = call i32 @add(i32 %x, i32 %y)
-; CHECK: ret i32 %sum
-
-; CHECK: %result = add i32 %a, %b
+; CHECK: %0 = add i32 %a, %b
 ; CHECK: ret i32 %result
 
-; CHECK: %sum = add i32 %x, %y
+; CHECK: %0 = call i32 @add(i32 %x, %y)
 ; CHECK: ret i32 %sum
 
-; CHECK: %sum = add i64 %x, %y
+; CHECK: %0 = add i32 %x, %y
+; CHECK: ret i32 %sum
+
+; CHECK: %0 = add i64 %x, %y
 ; CHECK: ret i64 %sum
 
 define i32 @add(i32 %a, i32 %b) {
