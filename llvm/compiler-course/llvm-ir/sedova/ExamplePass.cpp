@@ -1,10 +1,10 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/IR/Module.h"
 
 using namespace llvm;
 
@@ -55,13 +55,12 @@ struct ReplaceAddWithCall : PassInfoMixin<ReplaceAddWithCall> {
 
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-  return {
-    LLVM_PLUGIN_API_VERSION, "ReplaceAddWithCall", "0.1",
-        [](llvm::PassBuilder &PB) {
+  return {LLVM_PLUGIN_API_VERSION, "ReplaceAddWithCall", "0.1",
+          [](PassBuilder &PB) {
             PB.registerPipelineParsingCallback(
-                [](llvm::StringRef name, llvm::FunctionPassManager &FPM,
-                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) -> bool {
-                  if (name == "replace-add") {
+                [](StringRef name, FunctionPassManager &FPM,
+                   ArrayRef<PassBuilder::PipelineElement>) -> bool {
+                  if (name == "replace-add") { // Имя pass в нижнем регистре
                     FPM.addPass(ReplaceAddWithCall{});
                     return true;
                   }
