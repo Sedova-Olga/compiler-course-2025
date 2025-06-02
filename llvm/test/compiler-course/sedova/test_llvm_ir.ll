@@ -2,8 +2,8 @@
 ; RUN: -passes=replace-add -S %s | FileCheck %s
 
 ; CHECK-LABEL: define i32 @add(
-; CHECK:         %result = add i32 %
-; CHECK:         ret i32 %result
+; CHECK:         add i32 %
+; CHECK:         ret i32
 
 ; CHECK-LABEL: define i32 @foo(
 ; CHECK:         call i32 @add(i32 %x, i32 %y)

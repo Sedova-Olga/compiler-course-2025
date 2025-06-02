@@ -16,7 +16,7 @@ struct ReplaceAddWithCall : PassInfoMixin<ReplaceAddWithCall> {
 
     Module *M = F.getParent();
     Function *addFunc = M->getFunction("add");
-    if (!addFunc)
+    if (!addFunc || addFunc->isDeclaration())
       return PreservedAnalyses::all();
 
     if (addFunc->arg_size() != 2)
