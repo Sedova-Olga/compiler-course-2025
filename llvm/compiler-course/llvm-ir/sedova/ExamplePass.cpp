@@ -11,7 +11,7 @@ using namespace llvm;
 namespace {
 struct ReplaceAddWithCall : PassInfoMixin<ReplaceAddWithCall> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
-    if (F.getName() == "add" || F.getName() == "bar")
+    if (F.getName() == "add")
       return PreservedAnalyses::all();
 
     Module *M = F.getParent();
