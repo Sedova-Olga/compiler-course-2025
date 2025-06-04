@@ -9,7 +9,7 @@
 ; CHECK: define i32 @foo_i32(i32 %x, i32 %y)
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: %0 = call i32 @add_i32(i32 %x, i32 %y)
-; CHECK-NEXT: ret i32 %sum
+; CHECK-NEXT: ret i32 %0
 
 ; CHECK: define i64 @add_i64(i64 %a, i64 %b)
 ; CHECK-NEXT: entry:
@@ -19,7 +19,7 @@
 ; CHECK: define i64 @foo_i64(i64 %x, i64 %y)
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: %0 = call i64 @add_i64(i64 %x, i64 %y)
-; CHECK-NEXT: ret i64 %sum
+; CHECK-NEXT: ret i64 %0
 
 ; CHECK: define float @add_float(float %a, float %b)
 ; CHECK-NEXT: entry:
@@ -29,7 +29,7 @@
 ; CHECK: define float @foo_float(float %x, float %y)
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: %0 = call float @add_float(float %x, float %y)
-; CHECK-NEXT: ret float %sum
+; CHECK-NEXT: ret float %0
 
 ; CHECK: define i32 @bar_i32(i32 %x, i32 %y)
 ; CHECK-NEXT: entry:
