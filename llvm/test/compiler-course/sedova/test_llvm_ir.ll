@@ -11,7 +11,7 @@
 ; CHECK-NEXT: %0 = call i32 @add_i32(i32 %x, i32 %y)
 ; CHECK-NEXT: ret i32 %0
 
-; CHECK: define i64 @add_i64(i64 %a, i64 %b)
+; CHECK: define i64 @mul(i64 %a, i64 %b)
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: %result = mul i64 %a, %b
 ; CHECK-NEXT: ret i64 %result
@@ -43,7 +43,7 @@ entry:
   ret i32 %sum
 }
 
-define i64 @add_i64(i64 %a, i64 %b) {
+define i64 @mul(i64 %a, i64 %b) {
 entry:
   %result =  mul i64 %a, %b
   ret i64 %result
