@@ -11,6 +11,11 @@ using namespace llvm;
 namespace {
 struct ReplaceAddWithCall : PassInfoMixin<ReplaceAddWithCall> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
+    StringRef FName = F.getName();
+
+    if (FName == "add_i32" || FName == "add_i64" || FName == "add_float")
+      return PreservedAnalyses::all();
+
     Module *M = F.getParent();
     if (!M)
       return PreservedAnalyses::all();
