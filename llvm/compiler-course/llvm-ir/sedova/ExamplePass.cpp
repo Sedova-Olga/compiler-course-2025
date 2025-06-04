@@ -11,7 +11,18 @@ using namespace llvm;
 namespace {
 struct ReplaceAddWithCall : PassInfoMixin<ReplaceAddWithCall> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
-    if (F.getName() == "add")
+    std::string addFuncName;
+    if (F.getReturnType()->isIntegerTy(32))
+      addFuncName = "add_i32";
+    else if (F.getReturnType()->isIntegerTy(64))
+      addFuncName = "add_i64";
+    else if (F.getReturnType()->isFloatTy())
+      addFuncName = "add_float";
+    else
+      return PreservedAnalyses::all();
+
+    Function *addFunc = M->getFunction(addFuncName);
+    if (!addFunc)
       return PreservedAnalyses::all();
 
     Module *M = F.getParent();
