@@ -31,16 +31,6 @@
 ; CHECK-NEXT: %0 = call float @add_float(float %x, float %y)
 ; CHECK-NEXT: ret float %0
 
-; CHECK: define i32 @bar_i32(i32 %x, i32 %y)
-; CHECK-NEXT: entry:
-; CHECK-NEXT: %sum = add i32 %x, %y
-; CHECK-NEXT: ret i32 %sum
-
-; CHECK: define float @bar_float(float %x, float %y)
-; CHECK-NEXT: entry:
-; CHECK-NEXT: %sum = fadd float %x, %y
-; CHECK-NEXT: ret float %sum
-
 define i32 @add_i32(i32 %a, i32 %b) {
 entry:
   %result = add i32 %a, %b
@@ -72,18 +62,6 @@ entry:
 }
 
 define float @foo_float(float %x, float %y) {
-entry:
-  %sum = fadd float %x, %y
-  ret float %sum
-}
-
-define i32 @bar_i32(i32 %x, i32 %y) {
-entry:
-  %sum = add i32 %x, %y
-  ret i32 %sum
-}
-
-define float @bar_float(float %x, float %y) {
 entry:
   %sum = fadd float %x, %y
   ret float %sum
