@@ -13,7 +13,7 @@
 
 ; CHECK: define i64 @add_i64(i64 %a, i64 %b)
 ; CHECK-NEXT: entry:
-; CHECK-NEXT: %result = add i64 %a, %b
+; CHECK-NEXT: %result = mul i64 %a, %b
 ; CHECK-NEXT: ret i64 %result
 
 ; CHECK: define i64 @foo_i64(i64 %x, i64 %y)
@@ -45,7 +45,7 @@ entry:
 
 define i64 @add_i64(i64 %a, i64 %b) {
 entry:
-  %result = add i64 %a, %b
+  %result =  mul i64 %a, %b
   ret i64 %result
 }
 
