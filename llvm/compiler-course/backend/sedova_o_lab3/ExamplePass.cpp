@@ -56,14 +56,12 @@ public:
     for (MachineBasicBlock &MBB : MF) {
       SmallVector<MachineInstr *, 8> WorkList;
 
-      // Собираем все FMA-инструкции
       for (MachineInstr &MI : make_early_inc_range(MBB)) {
         if (auto FMAData = getFMAInfo(MI.getOpcode())) {
           WorkList.push_back(&MI);
         }
       }
 
-      // Обрабатываем каждую FMA-инструкцию
       for (MachineInstr *MI : WorkList) {
         Changed |= decomposeFMA(*MI, MBB, TII, MRI);
       }
@@ -80,7 +78,6 @@ private:
     const FMAGroup *Group;
   };
 
-  // Поиск информации о FMA по опкоду
   Optional<FMAData> getFMAInfo(unsigned Opcode) const {
     for (const auto &Group : FMA_Groups) {
       for (unsigned i = 0; i < Group.Opcodes.size(); ++i) {
@@ -92,7 +89,6 @@ private:
     return None;
   }
 
-  // Декомпозиция FMA в MUL + ADD
   bool decomposeFMA(MachineInstr &MI, MachineBasicBlock &MBB,
                     const X86InstrInfo *TII, MachineRegisterInfo &MRI) {
     auto FMAInfoOpt = getFMAInfo(MI.getOpcode());
@@ -107,20 +103,19 @@ private:
     Register Op2 = MI.getOperand(2).getReg();
     Register Op3 = MI.getOperand(3).getReg();
 
-    // Определяем операнды для MUL и ADD в зависимости от варианта FMA
     Register MulLHS, MulRHS, AddSrc;
     switch (Info.FMAIndex) {
-    case 0: // 132
+    case 0:
       MulLHS = Op1;
       MulRHS = Op3;
       AddSrc = Op2;
       break;
-    case 1: // 213
+    case 1:
       MulLHS = Op1;
       MulRHS = Op2;
       AddSrc = Op3;
       break;
-    case 2: // 231
+    case 2:
       MulLHS = Op2;
       MulRHS = Op3;
       AddSrc = Op1;
@@ -132,13 +127,11 @@ private:
     const TargetRegisterClass *RC = MRI.getRegClass(MulLHS);
     Register TmpReg = MRI.createVirtualRegister(RC);
 
-    // Вставляем MUL
     BuildMI(MBB, MI, DL, TII->get(Info.MulOp), TmpReg)
         .addReg(MulLHS)
         .addReg(MulRHS)
         .setMIFlag(MachineInstr::MIFlag::NoFPExcept);
 
-    // Вставляем ADD
     BuildMI(MBB, MI, DL, TII->get(Info.AddOp), Dst)
         .addReg(AddSrc)
         .addReg(TmpReg)
