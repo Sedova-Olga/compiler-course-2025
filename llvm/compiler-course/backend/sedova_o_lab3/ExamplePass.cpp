@@ -9,6 +9,7 @@
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/ADT/Optional.h"
 
 #define DEBUG_TYPE "fma-decompose-x86"
 
