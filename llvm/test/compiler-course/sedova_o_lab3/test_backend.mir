@@ -1,30 +1,34 @@
-# RUN: llc -mtriple x86_64-unknown-linux-gnu --load=%llvmshlibdir/FMADecomposePass_Sedova_Olga_FIIT1_BACKEND%shlibext \
-# RUN: -run-pass=fma-decompose  %s -o - | FileCheck %s
+# RUN: llc -mtriple x86_64-unknown-linux-gnu -mattr=+avx,+fma --load=%llvmshlibdir/FMADecomposePass_Sedova_Olga_FIIT1_BACKEND%shlibext \
+# RUN: -run-pass=fma-decompose-x86  %s -o - | FileCheck %s
 
 ---
-# CHECK-LABEL: name:            test_simple_fma
-name:            test_simple_fma
+# CHECK-LABEL: name:            test_fma_132ps
+name:            test_fma_132ps
 body:             |
   bb.0:
     liveins: $xmm0, $xmm1, $xmm2
-    ; CHECK: %res = G_MUL %x, %y
-    ; CHECK-NEXT: %out = G_ADD %z, %res
-    %out = G_FMA %x, %y, %z
-    RET 0, %out
+    ; CHECK: %tmp = MULPSrr $xmm0, $xmm2, implicit $mxcsr
+    ; CHECK-NEXT: $xmm0 = ADDPSrr $xmm1, %tmp, implicit $mxcsr
+    ; CHECK-NEXT: RET 0, $xmm0
+
+    %tmp = nofpexcept VFMADD132PSr $xmm0, $xmm1, $xmm2, implicit $mxcsr
+    $xmm0 = COPY %tmp
+    RET 0, $xmm0
 ...
 
 ---
-# CHECK-LABEL: name:            test_multiple_fma
-name:            test_multiple_fma
+# CHECK-LABEL: name:            test_fma_213pd
+name:            test_fma_213pd
 body:             |
   bb.0:
-    ; CHECK: %tmp1 = G_MUL %a, %b
-    ; CHECK-NEXT: %r1 = G_ADD %c, %tmp1
-    ; CHECK: %tmp2 = G_MUL %d, %e
-    ; CHECK-NEXT: %r2 = G_ADD %f, %tmp2
-    %r1 = G_FMA %a, %b, %c
-    %r2 = G_FMA %d, %e, %f
-    RET 0, %r2
+    liveins: $xmm0, $xmm1, $xmm2
+    ; CHECK: %tmp = MULPDrr $xmm0, $xmm1, implicit $mxcsr
+    ; CHECK-NEXT: $xmm0 = ADDPDrr $xmm2, %tmp, implicit $mxcsr
+    ; CHECK-NEXT: RET 0, $xmm0
+
+    %tmp = nofpexcept VFMADD213PDr $xmm0, $xmm1, $xmm2, implicit $mxcsr
+    $xmm0 = COPY %tmp
+    RET 0, $xmm0
 ...
 
 ---
@@ -32,20 +36,10 @@ body:             |
 name:            test_no_fma
 body:             |
   bb.0:
-    ; CHECK: %r1 = G_MUL %a, %b
-    ; CHECK-NEXT: %r2 = G_ADD %r1, %c
-    %r1 = G_MUL %a, %b
-    %r2 = G_ADD %r1, %c
-    RET 0, %r2
-...
+    liveins: $xmm0, $xmm1
+    ; CHECK: %r1 = MULPSrr $xmm0, $xmm1, implicit $mxcsr
+    ; CHECK-NEXT: RET 0, %r1
 
----
-# CHECK-LABEL: name:            test_fma_extra_operand
-name:            test_fma_extra_operand
-body:             |
-  bb.0:
-    ; CHECK: %tmp = G_MUL %x, %y
-    ; CHECK-NEXT: %r = G_ADD %z, %tmp
-    %r = G_FMA %x, %y, %z, %w
-    RET 0, %r
+    %r1 = MULPSrr $xmm0, $xmm1, implicit $mxcsr
+    RET 0, %r1
 ...
