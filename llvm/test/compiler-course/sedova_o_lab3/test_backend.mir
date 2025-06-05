@@ -1,7 +1,7 @@
 # RUN: llc -mtriple x86_64-unknown-linux-gnu --load=%llvmshlibdir/FMADecomposePass_Sedova_Olga_FIIT1_BACKEND%shlibext \
 # RUN: -run-pass=fma-decompose  %s -o - | FileCheck %s
 
-// CHECK-LABEL: ; Function: @test_multiple_fma
+// CHECK-LABEL: define {{.*}}@test_multiple_fma
 // CHECK-NOT: G_FMA
 // CHECK: G_MUL
 // CHECK: G_ADD
@@ -12,11 +12,10 @@ bb.0:
   ret
 }
 
-; CHECK-LABEL: ; Function: @test_fma_different_regs
-; CHECK-NOT: G_FMA
-; CHECK: G_MUL
-; CHECK: G_ADD
-
+// CHECK-LABEL: Function: @test_fma_different_regs
+// CHECK-NOT: G_FMA
+// CHECK: G_MUL
+// CHECK: G_ADD
 func @test_fma_different_regs() {
 bb.0:
   %r1 = G_FMA %r2, %r3, %r4
@@ -24,11 +23,10 @@ bb.0:
   ret
 }
 
-; CHECK-LABEL: ; Function: @test_no_fma
-; CHECK-NOT: G_FMA
-; CHECK-NOT: G_MUL
-; CHECK-NOT: G_ADD
-
+// CHECK-LABEL: Function: @test_no_fma
+// CHECK-NOT: G_FMA
+// CHECK-NOT: G_MUL
+// CHECK-NOT: G_ADD
 func @test_no_fma() {
 bb.0:
   %r1 = G_MUL %r2, %r3
@@ -36,11 +34,10 @@ bb.0:
   ret
 }
 
-; CHECK-LABEL: ; Function: @test_fma_extra_operands
-; CHECK-NOT: G_FMA
-; CHECK: G_MUL
-; CHECK: G_ADD
-
+// CHECK-LABEL: Function: @test_fma_extra_operands
+// CHECK-NOT: G_FMA
+// CHECK: G_MUL
+// CHECK: G_ADD
 func @test_fma_extra_operands() {
 bb.0:
   %r1 = G_FMA %r2, %r3, %r4, %r5
