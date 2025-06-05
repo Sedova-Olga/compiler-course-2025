@@ -9,11 +9,12 @@
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/ADT/Optional.h"
+#include <optional>
 
 #define DEBUG_TYPE "fma-decompose-x86"
 
 using namespace llvm;
+using std::optional;
 
 namespace {
 
@@ -58,7 +59,7 @@ public:
       SmallVector<MachineInstr *, 8> WorkList;
 
       for (MachineInstr &MI : make_early_inc_range(MBB)) {
-        if (auto FMAData = getFMAInfo(MI.getOpcode())) {
+        if (getFMAInfo(MI.getOpcode()).has_value()) {
           WorkList.push_back(&MI);
         }
       }
@@ -79,7 +80,7 @@ private:
     const FMAGroup *Group;
   };
 
-  Optional<FMAData> getFMAInfo(unsigned Opcode) const {
+  optional<FMAData> getFMAInfo(unsigned Opcode) const {
     for (const auto &Group : FMA_Groups) {
       for (unsigned i = 0; i < Group.Opcodes.size(); ++i) {
         if (Group.Opcodes[i] == Opcode) {
@@ -87,7 +88,7 @@ private:
         }
       }
     }
-    return None;
+    return std::nullopt;
   }
 
   bool decomposeFMA(MachineInstr &MI, MachineBasicBlock &MBB,
@@ -105,48 +106,18 @@ private:
     Register Op3 = MI.getOperand(3).getReg();
 
     Register MulLHS, MulRHS, AddSrc;
+
     switch (Info.FMAIndex) {
-    case 0:
+    case 0: // 132
       MulLHS = Op1;
       MulRHS = Op3;
       AddSrc = Op2;
       break;
-    case 1:
+    case 1: // 213
       MulLHS = Op1;
       MulRHS = Op2;
       AddSrc = Op3;
       break;
-    case 2:
+    case 2: // 231
       MulLHS = Op2;
       MulRHS = Op3;
-      AddSrc = Op1;
-      break;
-    default:
-      llvm_unreachable("Invalid FMA index");
-    }
-
-    const TargetRegisterClass *RC = MRI.getRegClass(MulLHS);
-    Register TmpReg = MRI.createVirtualRegister(RC);
-
-    BuildMI(MBB, MI, DL, TII->get(Info.MulOp), TmpReg)
-        .addReg(MulLHS)
-        .addReg(MulRHS)
-        .setMIFlag(MachineInstr::MIFlag::NoFPExcept);
-
-    BuildMI(MBB, MI, DL, TII->get(Info.AddOp), Dst)
-        .addReg(AddSrc)
-        .addReg(TmpReg)
-        .setMIFlag(MachineInstr::MIFlag::NoFPExcept);
-
-    MI.eraseFromParent();
-    return true;
-  }
-};
-
-char FMADecomposePass::ID = 0;
-
-} // namespace
-
-static RegisterPass<FMADecomposePass>
-    X("fma-decompose-x86", "Decompose x86 FMA instructions into MUL + ADD",
-      false, false);
