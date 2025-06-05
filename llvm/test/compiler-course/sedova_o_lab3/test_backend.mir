@@ -1,6 +1,7 @@
 # RUN: llc -mtriple x86_64-unknown-linux-gnu --load=%llvmshlibdir/FMADecomposePass_Sedova_Olga_FIIT1_BACKEND%shlibext \
 # RUN: -run-pass=fma-decompose  %s -o - | FileCheck %s
 
+// ---
 // CHECK-LABEL: func @test_fma_different_regs
 // CHECK-DAG: G_MUL
 // CHECK-DAG: G_ADD
@@ -12,6 +13,7 @@ bb.0:
   ret
 }
 
+// ---
 // CHECK-LABEL: func @test_no_fma
 // CHECK-NOT: G_FMA
 // CHECK-NOT: G_MUL
@@ -23,6 +25,7 @@ bb.0:
   ret
 }
 
+// ---
 // CHECK-LABEL: func @test_fma_extra_operands
 // CHECK-DAG: G_MUL
 // CHECK-DAG: G_ADD
