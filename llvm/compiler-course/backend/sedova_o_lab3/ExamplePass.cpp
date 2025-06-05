@@ -61,8 +61,10 @@ char FMADecomposePass::ID = 0;
 
 } // end anonymous namespace
 
+namespace llvm {
 INITIALIZE_PASS(FMADecomposePass, "fma-decompose",
                 "Decompose FMA into MUL + ADD", false, false)
+} // namespace llvm
 
 static RegisterPass<FMADecomposePass>
     X("fma-decompose", "Decompose FMA into MUL + ADD", false, false);
