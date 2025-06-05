@@ -25,6 +25,9 @@
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: %0 = call float @add_float(float %x, float %y)
 ; CHECK-NEXT: ret float %0
+; CHECK-LABEL: define i32 @no_add_decl(i32 %x, i32 %y)
+; CHECK:         %sum = add i32 %x, %y
+; CHECK-NOT:     call i32 @add
 
 define i32 @add_i32(i32 %a, i32 %b) {
 entry:
@@ -46,7 +49,6 @@ entry:
   %sum = add i64 %x, %y
   ret i64 %sum
 }
-
 define float @add_float(float %a, float %b) {
 entry:
   %result = fadd float %a, %b
@@ -58,10 +60,6 @@ entry:
   %sum = fadd float %x, %y
   ret float %sum
 }
-
-; CHECK-LABEL: define i32 @no_add_decl(i32 %x, i32 %y)
-; CHECK:         %sum = add i32 %x, %y
-; CHECK-NOT:     call i32 @add
 
 define i32 @no_add_decl(i32 %x, i32 %y) {
   %sum = add i32 %x, %y
