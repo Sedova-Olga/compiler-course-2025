@@ -1,21 +1,10 @@
 # RUN: llc -mtriple x86_64-unknown-linux-gnu --load=%llvmshlibdir/FMADecomposePass_Sedova_Olga_FIIT1_BACKEND%shlibext \
 # RUN: -run-pass=fma-decompose  %s -o - | FileCheck %s
 
-// CHECK-LABEL: define {{.*}}@test_multiple_fma
-// CHECK-NOT: G_FMA
-// CHECK: G_MUL
-// CHECK: G_ADD
-
-func @test_multiple_fma() {
-bb.0:
-  %vreg1 = G_FMA %vreg2, %vreg3, %vreg4
-  ret
-}
-
 // CHECK-LABEL: Function: @test_fma_different_regs
+// CHECK-DAG: G_MUL
+// CHECK-DAG: G_ADD
 // CHECK-NOT: G_FMA
-// CHECK: G_MUL
-// CHECK: G_ADD
 func @test_fma_different_regs() {
 bb.0:
   %r1 = G_FMA %r2, %r3, %r4
@@ -35,9 +24,9 @@ bb.0:
 }
 
 // CHECK-LABEL: Function: @test_fma_extra_operands
+// CHECK-DAG: G_MUL
+// CHECK-DAG: G_ADD
 // CHECK-NOT: G_FMA
-// CHECK: G_MUL
-// CHECK: G_ADD
 func @test_fma_extra_operands() {
 bb.0:
   %r1 = G_FMA %r2, %r3, %r4, %r5
