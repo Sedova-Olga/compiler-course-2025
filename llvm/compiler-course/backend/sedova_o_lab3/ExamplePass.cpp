@@ -121,3 +121,34 @@ private:
     case 2: // 231
       MulLHS = Op2;
       MulRHS = Op3;
+      AddSrc = Op1;
+      break;
+    default:
+      llvm_unreachable("Invalid FMA index");
+    }
+
+    const TargetRegisterClass *RC = MRI.getRegClass(MulLHS);
+    Register TmpReg = MRI.createVirtualRegister(RC);
+
+    BuildMI(MBB, MI, DL, TII->get(Info.MulOp), TmpReg)
+        .addReg(MulLHS)
+        .addReg(MulRHS)
+        .setMIFlag(MachineInstr::MIFlag::NoFPExcept);
+
+    BuildMI(MBB, MI, DL, TII->get(Info.AddOp), Dst)
+        .addReg(AddSrc)
+        .addReg(TmpReg)
+        .setMIFlag(MachineInstr::MIFlag::NoFPExcept);
+
+    MI.eraseFromParent();
+    return true;
+  }
+};
+
+char FMADecomposePass::ID = 0;
+
+} // namespace
+
+static RegisterPass<FMADecomposePass>
+    X("fma-decompose-x86", "Decompose x86 FMA instructions into MUL + ADD",
+      false, false);
