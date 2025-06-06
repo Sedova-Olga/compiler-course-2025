@@ -2,7 +2,7 @@
 # RUN: -run-pass=fma-decompose-x86  %s -o - | FileCheck %s
 --- |
   ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z9test_baseDv2_dS_S_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @test_base(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr #0 {
   entry:
     %mul = fmul <2 x double> %a, %b
     %add = fadd <2 x double> %mul, %c
@@ -10,7 +10,7 @@
   }
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z12test_two_opsDv2_dS_S_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr #1 {
+  define dso_local noundef <2 x double> @test_two_ops(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr #1 {
   entry:
     %mul = fmul <2 x double> %a, %b
     %add = fadd <2 x double> %a, %b
@@ -24,7 +24,7 @@
   declare <2 x double> @llvm.fmuladd.v2f64(<2 x double>, <2 x double>, <2 x double>) #2
 
   ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @_Z6test_3Dv2_dS_S_S_(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr #0 {
+  define dso_local noundef <2 x double> @test_three(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr #0 {
   entry:
     %mul = fmul <2 x double> %a, %b
     %add = fadd <2 x double> %mul, %c
@@ -32,10 +32,9 @@
     %div = fdiv <2 x double> %add, %add1
     ret <2 x double> %div
   }
-
 ...
 ---
-name:            _Z9test_baseDv2_dS_S_S_
+name:            test_base
 alignment:       16
 exposesReturnsTwice: false
 legalized:       false
@@ -109,7 +108,7 @@ body:             |
     RET 0, $xmm0
 ...
 ---
-name:            _Z12test_two_opsDv2_dS_S_S_
+name:            test_two_ops
 alignment:       16
 exposesReturnsTwice: false
 legalized:       false
@@ -193,7 +192,7 @@ body:             |
     RET 0, $xmm0
 ...
 ---
-name:            _Z6test_3Dv2_dS_S_S_
+name:            test_three
 alignment:       16
 exposesReturnsTwice: false
 legalized:       false
