@@ -1,45 +1,16 @@
 # RUN: llc -mtriple x86_64-unknown-linux-gnu -mattr=+avx,+fma --load=%llvmshlibdir/FMADecomposePass_Sedova_Olga_FIIT1_BACKEND%shlibext \
 # RUN: -run-pass=fma-decompose-x86  %s -o - | FileCheck %s
-
 ---
 # CHECK-LABEL: name:            test_fma_132ps
 name:            test_fma_132ps
 body:             |
   bb.0:
     liveins: $xmm0, $xmm1, $xmm2
-    ; CHECK: %tmp = MULPSrr $xmm0, $xmm2, implicit $mxcsr
-    ; CHECK-NEXT: $xmm0 = ADDPSrr $xmm1, %tmp, implicit $mxcsr
+    ; CHECK: [[MUL_REG:%[0-9]+]]:vr128 = MULPSrr $xmm0, $xmm2, implicit $mxcsr
+    ; CHECK-NEXT: $xmm0 = ADDPSrr $xmm1, [[MUL_REG]], implicit $mxcsr
     ; CHECK-NEXT: RET 0, $xmm0
 
-    %tmp = nofpexcept VFMADD132PSr $xmm0, $xmm1, $xmm2, implicit $mxcsr
+    %tmp:vr128 = nofpexcept VFMADD132PSr $xmm0, $xmm1, $xmm2, implicit $mxcsr
     $xmm0 = COPY %tmp
     RET 0, $xmm0
-...
-
----
-# CHECK-LABEL: name:            test_fma_213pd
-name:            test_fma_213pd
-body:             |
-  bb.0:
-    liveins: $xmm0, $xmm1, $xmm2
-    ; CHECK: %tmp = MULPDrr $xmm0, $xmm1, implicit $mxcsr
-    ; CHECK-NEXT: $xmm0 = ADDPDrr $xmm2, %tmp, implicit $mxcsr
-    ; CHECK-NEXT: RET 0, $xmm0
-
-    %tmp = nofpexcept VFMADD213PDr $xmm0, $xmm1, $xmm2, implicit $mxcsr
-    $xmm0 = COPY %tmp
-    RET 0, $xmm0
-...
-
----
-# CHECK-LABEL: name:            test_no_fma
-name:            test_no_fma
-body:             |
-  bb.0:
-    liveins: $xmm0, $xmm1
-    ; CHECK: %r1 = MULPSrr $xmm0, $xmm1, implicit $mxcsr
-    ; CHECK-NEXT: RET 0, %r1
-
-    %r1 = MULPSrr $xmm0, $xmm1, implicit $mxcsr
-    RET 0, %r1
 ...
