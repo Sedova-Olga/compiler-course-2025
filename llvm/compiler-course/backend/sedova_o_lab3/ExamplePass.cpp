@@ -48,7 +48,7 @@ bool ExamplePass::runOnMachineFunction(MachineFunction &MF) {
 
       auto &op = MI.getOperand(0);
       for (auto &secondMI : MBB) {
-        int ind = secondMI.findRegisterUseOperandIdx(op.getReg());
+        int ind = secondMI.findRegisterUseOperandIdx(op.getReg(), &TII, false);
         if (ind != -1 && isAddInstr(secondMI)) {
           if (ind == 0)
             break;
