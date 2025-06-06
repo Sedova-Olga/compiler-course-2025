@@ -59,7 +59,7 @@ bool ExamplePass::runOnMachineFunction(MachineFunction &MF) {
           MachineInstr *Mul = &MI;
           MachineInstr *Add = &secondMI;
 
-          BuildMI(MBB, Mul, MIMD, TRI.get(X86::VFMADD213PDr),
+          BuildMI(MBB, Mul, MIMD, TRI->get(X86::VFMADD213PDr),
                   Add->getOperand(0).getReg())
               .addReg(Mul->getOperand(1).getReg())
               .addReg(Mul->getOperand(2).getReg())
