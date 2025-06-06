@@ -17,9 +17,6 @@ public:
   ExamplePass() : MachineFunctionPass(ID) {}
 
   bool runOnMachineFunction(MachineFunction &MF) override;
-
-private:
-  StringRef getPassName() const override { return DESC; }
 };
 } // namespace
 
