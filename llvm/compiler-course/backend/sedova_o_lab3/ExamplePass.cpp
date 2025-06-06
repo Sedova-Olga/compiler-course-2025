@@ -56,17 +56,19 @@ public:
     bool Changed = false;
 
     for (MachineBasicBlock &MBB : MF) {
-      SmallVector<MachineInstr *, 8> WorkList;
+      SmallVector<MachineInstr *, 8> ToErase;
 
       for (MachineInstr &MI : make_early_inc_range(MBB)) {
-        if (getFMAInfo(MI.getOpcode()).has_value()) {
-          WorkList.push_back(&MI);
-        }
+        auto FMAInfoOpt = getFMAInfo(MI.getOpcode());
+        if (!FMAInfoOpt)
+          continue;
+
+        Changed |= decomposeFMA(MI, MBB, TII, MRI, *FMAInfoOpt);
+        ToErase.push_back(&MI);
       }
 
-      for (MachineInstr *MI : WorkList) {
-        Changed |= decomposeFMA(*MI, MBB, TII, MRI);
-      }
+      for (auto *MI : ToErase)
+        MI->eraseFromParent();
     }
 
     return Changed;
@@ -77,14 +79,13 @@ private:
     unsigned MulOp;
     unsigned AddOp;
     unsigned FMAIndex;
-    const FMAGroup *Group;
   };
 
   optional<FMAData> getFMAInfo(unsigned Opcode) const {
     for (const auto &Group : FMA_Groups) {
       for (unsigned i = 0; i < Group.Opcodes.size(); ++i) {
         if (Group.Opcodes[i] == Opcode) {
-          return FMAData{Group.MulOpcode, Group.AddOpcode, i, &Group};
+          return FMAData{Group.MulOpcode, Group.AddOpcode, i};
         }
       }
     }
@@ -92,12 +93,8 @@ private:
   }
 
   bool decomposeFMA(MachineInstr &MI, MachineBasicBlock &MBB,
-                    const X86InstrInfo *TII, MachineRegisterInfo &MRI) {
-    auto FMAInfoOpt = getFMAInfo(MI.getOpcode());
-    if (!FMAInfoOpt)
-      return false;
-
-    const FMAData &Info = *FMAInfoOpt;
+                    const X86InstrInfo *TII, MachineRegisterInfo &MRI,
+                    const FMAData &Info) {
     DebugLoc DL = MI.getDebugLoc();
 
     Register Dst = MI.getOperand(0).getReg();
@@ -126,8 +123,12 @@ private:
     default:
       llvm_unreachable("Invalid FMA index");
     }
+    const TargetRegisterClass *RC = MRI.getRegClassOrNull(MulLHS);
+    if (!RC) {
+      LLVM_DEBUG(dbgs() << "Failed to get register class for MulLHS\n");
+      return false;
+    }
 
-    const TargetRegisterClass *RC = MRI.getRegClass(MulLHS);
     Register TmpReg = MRI.createVirtualRegister(RC);
 
     BuildMI(MBB, MI, DL, TII->get(Info.MulOp), TmpReg)
@@ -140,7 +141,6 @@ private:
         .addReg(TmpReg)
         .setMIFlag(MachineInstr::MIFlag::NoFPExcept);
 
-    MI.eraseFromParent();
     return true;
   }
 };
