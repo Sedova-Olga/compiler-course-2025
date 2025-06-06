@@ -272,4 +272,3 @@ body:             |
     %8:vr128 = nofpexcept DIVPDrr %6, killed %7, implicit $mxcsr
     $xmm0 = COPY %8
     RET 0, $xmm0
-...
