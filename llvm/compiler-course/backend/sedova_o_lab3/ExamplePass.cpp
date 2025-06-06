@@ -37,8 +37,8 @@ static bool existInvector(std::vector<MachineInstr *> *vector,
 
 bool ExamplePass::runOnMachineFunction(MachineFunction &MF) {
   const X86Subtarget &STI = MF.getSubtarget<X86Subtarget>();
-  const X86InstrInfo *TII = ST.getInstrInfo();
-  const TargetRegisterInfo *TRI = TII->getRegisterInfo();
+  const X86InstrInfo *TII = STI.getInstrInfo();
+  const TargetRegisterInfo *TRI = &TII->getRegisterInfo();
 
   std::vector<MachineInstr *> MIvector;
 
@@ -49,7 +49,7 @@ bool ExamplePass::runOnMachineFunction(MachineFunction &MF) {
 
       auto &op = MI.getOperand(0);
       for (auto &secondMI : MBB) {
-        int ind = secondMI.findRegisterUseOperandIdx(op.getReg(), &TRI, false);
+        int ind = secondMI.findRegisterUseOperandIdx(op.getReg(), TRI, false);
         if (ind != -1 && isAddInstr(secondMI)) {
           if (ind == 0)
             break;
@@ -59,7 +59,7 @@ bool ExamplePass::runOnMachineFunction(MachineFunction &MF) {
           MachineInstr *Mul = &MI;
           MachineInstr *Add = &secondMI;
 
-          BuildMI(MBB, Mul, MIMD, TRI->get(X86::VFMADD213PDr),
+          BuildMI(MBB, Mul, MIMD, TII->get(X86::VFMADD213PDr),
                   Add->getOperand(0).getReg())
               .addReg(Mul->getOperand(1).getReg())
               .addReg(Mul->getOperand(2).getReg())
